@@ -20,14 +20,22 @@ import Sheet
 ------------------------------------------------------------------------------}
 main :: IO ()
 main = start $ do
-    f         <- frame [text := "Arithmetic"]
+    f         <- frame [text := "Spreadsheet"]
     input1    <- entry f []
     input2    <- entry f []
     output    <- staticText f []
 
-    set f [layout := margin 10 $ row 10
-            [widget input1, label "+", widget input2
-            , label "=", minsize (sz 40 20) $ widget output]]
+    sheet <- visibleCells f
+
+    let cSpacing = 0 -- cell spacing (between columns and rows)
+
+    set f [layout := margin 0
+                   $ column cSpacing
+                   $ map (\rowI -> row cSpacing
+                                 $ map widget (ins sheet !! rowI)
+                         ) [0..length (ins sheet)-1]
+                     ++ [widget output]
+          ]
 
     let networkDescription :: forall t. Frameworks t => Moment t ()
         networkDescription = do
