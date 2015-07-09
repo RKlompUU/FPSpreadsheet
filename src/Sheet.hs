@@ -7,8 +7,12 @@ data Expr = Var String -- placeholder
 
 type Cell = Either Expr String
 
-data Sheet = Sheet {cells :: [[Cell]],
-                    ins   :: [[TextCtrl ()]] }
+type Pos = (Int, Int)
+
+data Sheet = Sheet { colOffset :: Int,
+                     rowOffset :: Int,
+                     cells     :: [[Cell]],
+                     ins       :: [[(Pos, TextCtrl ())]] }
 
 
 sliceList :: Int -> Int -> [a] -> [a]
@@ -22,7 +26,12 @@ subLists i xs = let is = [0,i..(length xs - 1)]
 
 --visibleCells :: IO
 visibleCells f = do
-  let rows = 10
-  let cols = 4
-  cells <- replicateM (rows*cols) (entry f [])
-  return $ Sheet (repeat $ repeat (Right "")) (subLists rows cells)
+  let cols = 5
+  let rows = 3
+  cells <- replicateM (rows*cols) (entry f [nullAttr "test" := 4])
+  let test = map (\c -> set c [nullAttr "test" := 3]) cells
+  let cells' = (map . map) (\(p,cell) -> (p, set cell [nullAttr "index" := p]))
+             $ map (\(rI,r) -> zip [(rI,cI) | cI <- [0..cols]] r)
+             $ zip [0..rows]
+             $ subLists cols cells
+  return $ Sheet 0 0 (repeat $ repeat (Right "")) cells'

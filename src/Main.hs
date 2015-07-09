@@ -32,7 +32,7 @@ main = start $ do
     set f [layout := margin 0
                    $ column cSpacing
                    $ map (\rowI -> row cSpacing
-                                 $ map widget (ins sheet !! rowI)
+                                 $ map (widget . snd) (ins sheet !! rowI)
                          ) [0..length (ins sheet)-1]
                      ++ [widget output]
           ]
