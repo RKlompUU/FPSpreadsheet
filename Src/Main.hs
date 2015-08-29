@@ -13,7 +13,7 @@ import Graphics.UI.WX hiding (Event)
 import Reactive.Banana
 import Reactive.Banana.WX
 
-import Sheet
+import Src.Sheet
 
 {-----------------------------------------------------------------------------
     Main
@@ -32,10 +32,12 @@ main = start $ do
     set f [layout := margin 0
                    $ column cSpacing
                    $ map (\rowI -> row cSpacing
-                                 $ map (widget . snd) (ins sheet !! rowI)
-                         ) [0..length (ins sheet)-1]
+                                 $ map (widget . snd) (sheetIns sheet !! rowI)
+                         ) [0..length (sheetIns sheet)-1]
                      ++ [widget output]
           ]
+
+
 
     let networkDescription :: forall t. Frameworks t => Moment t ()
         networkDescription = do
