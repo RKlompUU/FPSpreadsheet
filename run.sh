@@ -8,7 +8,12 @@ Want to run the old binary?')
 }
 
 function run {
-  ./bin/Main $@
+  noIArguments=$(filterString "$*" -i)
+  if anyString "$*" -i; then
+    ghci Src/Main.hs
+  else
+    ./bin/Main $noIArguments
+  fi
 }
 
 function compileAndRun {
@@ -21,7 +26,7 @@ function compileAndRun {
 
 noMArgs=$(filterString "$*" -m)
 if anyString "$*" -m; then
-  compileAndRun noMArgs
+  compileAndRun $noMArgs
 else
-  run noMArgs
+  run $noMArgs
 fi

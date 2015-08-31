@@ -2,6 +2,8 @@ module Src.Sheet where
 
 import Control.Monad
 import Graphics.UI.WX hiding (Event)
+import Reactive.Banana
+import Reactive.Banana.WX
 
 data Expr = Var String -- placeholder
 
@@ -21,16 +23,15 @@ subLists :: Int -> [a] -> [[a]]
 subLists i xs = let is = [0,i..(length xs - 1)]
                 in map (\i' -> sliceList i' (i'+i-1) xs) is
 
--- initSheet ::
+--getAttrTest :: w -> IO a
+-- getAttrTest w = get
 
-visibleCells :: Window a -> IO Sheet
-visibleCells f = do
+initSheet :: Window a -> IO Sheet
+initSheet f = do
   let cols = 5
   let rows = 3
-  cells <- replicateM (rows*cols) (entry f [nullAttr "test" := 4])
-  let test = map (\c -> set c [nullAttr "test" := 3]) cells
-  let cells' = -- (map . map) (\(p,cell) -> (p, set cell [nullAttr "index" := p]))
-               map (\(rI,r) -> zip [(rI,cI) | cI <- [0..cols]] r)
+  cells <- replicateM (rows*cols) (entry f [])
+  let cells' = map (\(rI,r) -> zip [(rI,cI) | cI <- [0..cols]] r)
              $ zip [0..rows]
              $ subLists cols cells
   return $ Sheet (0, 0) (repeat $ repeat (Right "")) cells'

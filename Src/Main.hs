@@ -18,6 +18,7 @@ import Reactive.Banana.WX
 
 import Src.Sheet
 
+
 {-----------------------------------------------------------------------------
     Main
 ------------------------------------------------------------------------------}
@@ -28,7 +29,9 @@ main = start $ do
     input2    <- entry f []
     output    <- staticText f []
 
-    sheet <- visibleCells f
+    sheet <- initSheet f
+
+    --itemAppend input1 (5 :: Int)
 
     let cSpacing = 0 -- cell spacing (between columns and rows)
 
@@ -41,6 +44,13 @@ main = start $ do
           ]
 
 
+    let bSheetAction :: Behavior t Sheet
+        bSheetAction
+          = accumB sheet (eCellChanged <$ never)
+          where eCellChanged :: Sheet -> Sheet
+                eCellChanged sh = undefined
+
+
 
     let networkDescription :: forall t. Frameworks t => Moment t ()
         networkDescription = do
@@ -50,9 +60,9 @@ main = start $ do
 
         let
             result :: Behavior t (Maybe Int)
-            result = f <$> binput1 <*> binput2
+            result = func <$> binput1 <*> binput2
                 where
-                f x y = liftA2 (+) (readNumber x) (readNumber y)
+                func x y = liftA2 (+) (readNumber x) (readNumber y)
 
             readNumber s = listToMaybe [x | (x,"") <- reads s]
             showNumber   = maybe "--" show
