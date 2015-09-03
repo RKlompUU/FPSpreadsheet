@@ -59,8 +59,8 @@ initSheet = do
              $ subLists cols shelledCells
   return $ Sheet (0, 0) Map.empty (0, 0) cells'
 
-focusSheetIn :: TVar Sheet -> UI ()
-focusSheetIn ctxSh
+focusSheetInShell :: TVar Sheet -> UI ()
+focusSheetInShell ctxSh
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
   let focusIn = sheetFocus sh
@@ -71,13 +71,22 @@ moveFocus ctxSh dPos
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
   liftIO $ atomically $ writeTVar ctxSh (sh {sheetFocus = dPos `posAdd` sheetFocus sh})
-  focusSheetIn ctxSh
+  focusSheetInShell ctxSh
 
+getAbsoluteCPos :: TVar Sheet -> Pos -> UI Pos
+getAbsoluteCPos ctxSh relativePos
+  = do
+  sh <- liftIO $ atomically $ readTVar ctxSh
+  return $ relativePos `posAdd` sheetOffset sh
 
 -- Unsafe operation, will crash if an invalid position is given
 getSheetIn :: Pos -> Sheet -> Element
 getSheetIn (r,c) sh
   = grabCell $ sheetIns sh !! r !! c
+
+getSheetCell :: Pos -> Sheet -> Cell
+getSheetCell pos sh
+  = Map.findWithDefault (Right "") pos (sheetCells sh)
 
 cells2Ins :: TVar Sheet -> UI ()
 cells2Ins ctxSh
