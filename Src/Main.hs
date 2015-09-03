@@ -29,6 +29,8 @@ import qualified Data.Aeson                  as JSON
 import qualified Text.Blaze.Html as HTML
 import qualified Text.Blaze.Html.Renderer.String as HTML
 
+import Control.Monad
+
 import Src.Sheet
 
 data KeyCode
@@ -70,9 +72,6 @@ main
   return ()
 
 
-getSheet :: TVar Sheet -> UI Sheet
-getSheet ctxSh = liftIO $ atomically $ readTVar ctxSh
-
 
 getHtml :: JSFunction String
 getHtml = ffi "document.documentElement.innerHTML"
@@ -82,7 +81,8 @@ isFocused :: Element -> UI Bool
 isFocused elm
   = do
   retVal <- callFunction $ ffi "$(%1).is(':focus')" elm
-  return (if retVal == "true" then True else False)
+  return $ retVal == "true"
+
 
 setup :: Window -> UI ()
 setup rootWindow
@@ -90,6 +90,7 @@ setup rootWindow
   sheet <- initSheet
 
   ctxSh <- liftIO $ atomically $ newTVar sheet
+  offsetSheet ctxSh (0,0)
 
   debugField <- UI.paragraph # set UI.text "Test"
   return rootWindow # set UI.title "Hello World!"
@@ -103,8 +104,12 @@ setup rootWindow
   mapM_ (\cell -> on UI.keydown (grabShell cell) (toKeyCodeM $ shellKeyHandler debugField ctxSh cell))
         (concat $ sheetIns sheet)
 
+
   getBody rootWindow #+
-    [  grid $ (map . map)
+    [  grid $ (:) (UI.body : map element (sheetColNs sheet))
+            $ map (\(shRowNr, shRow) -> element shRowNr : shRow)
+            $ zip (sheetRowNs sheet)
+            $ (map . map)
               (\(_,(shell,cell)) -> element shell #+ [element cell])
               (sheetIns sheet)
     , element debugField ]
@@ -147,17 +152,13 @@ shellKeyHandler :: Element -> TVar Sheet -> (Pos, (Element,Element)) -> KeyCode 
 shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEnter
   = do
   cellHasFocus <- isFocused cCell
-  if cellHasFocus
-    then UI.setFocus cShell
-    else UI.setFocus cCell
+  UI.setFocus (if cellHasFocus then cShell else cCell)
 shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEsc = UI.setFocus cShell
 shellKeyHandler debugField ctxSh (cPos, (cShell,cCell)) k
-  | any (==k) [KeyCodeUp, KeyCodeDown, KeyCodeLeft, KeyCodeRight]
+  | k `elem` [KeyCodeUp, KeyCodeDown, KeyCodeLeft, KeyCodeRight]
       = do
       cellHasFocus <- isFocused cCell
-      if cellHasFocus
-        then return ()
-        else moveFocus ctxSh (key2Dir k)
+      unless cellHasFocus $ moveFocus ctxSh (key2Dir k)
   | otherwise
       = element debugField # set UI.text (show k) >> return ()
 
@@ -171,5 +172,5 @@ dumpHtml rootWindow debugField
   -- This prettyfi stuff isn't actually working :/
   let prettyHtmlCode = HTML.renderHtml
                      $ HTML.toHtml htmlCode
-  element debugField # set UI.text htmlCode
+  element debugField # set UI.text "" -- htmlCode
   return ()
