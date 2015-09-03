@@ -32,6 +32,12 @@ data Sheet = Sheet { sheetOffset    :: Pos,
                      sheetCells     :: Map Pos Cell,
                      sheetFocus     :: Pos,
                      sheetIns       :: [[(Pos, (Element, Element))]] }
+grabShell :: (Pos, (Element, Element)) -> Element
+grabShell = fst . snd
+grabCell :: (Pos, (Element, Element)) -> Element
+grabCell = snd . snd
+grabPos :: (Pos, (Element, Element)) -> Pos
+grabPos = fst
 
 sliceList :: Int -> Int -> [a] -> [a]
 sliceList from to xs = take (to - from + 1) (drop from xs)
@@ -58,7 +64,7 @@ focusSheetIn ctxSh
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
   let focusIn = sheetFocus sh
-  UI.setFocus ((fst . snd) (sheetIns sh !! fst focusIn !! snd focusIn))
+  UI.setFocus (grabShell (sheetIns sh !! fst focusIn !! snd focusIn))
 
 moveFocus :: TVar Sheet -> Pos -> UI ()
 moveFocus ctxSh dPos
@@ -71,7 +77,7 @@ moveFocus ctxSh dPos
 -- Unsafe operation, will crash if an invalid position is given
 getSheetIn :: Pos -> Sheet -> Element
 getSheetIn (r,c) sh
-  = (snd . snd) $ sheetIns sh !! r !! c
+  = grabCell $ sheetIns sh !! r !! c
 
 cells2Ins :: TVar Sheet -> UI ()
 cells2Ins ctxSh
