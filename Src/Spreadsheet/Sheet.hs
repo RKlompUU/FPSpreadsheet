@@ -1,5 +1,9 @@
-module Src.Sheet where
+module Src.Spreadsheet.Sheet
+      ( module Src.Spreadsheet.Sheet
+      , module Src.Spreadsheet.SheetType
+      ) where
 
+import Src.Spreadsheet.SheetType
 
 import Data.Maybe
 
@@ -18,12 +22,6 @@ import qualified Data.Aeson                  as JSON
 readonly :: Attr Element Bool
 readonly = fromJQueryProp "readonly" (== JSON.Bool True) JSON.Bool
 
-data Expr = Var String -- placeholder
-          deriving Show
-
-type Cell = Either Expr String
-
-type Pos = (Int, Int)
 
 isInBox :: Pos -> (Pos,Pos) -> Maybe Pos
 isInBox (r,c) ((rL, cL), (rH, cH))
@@ -47,12 +45,6 @@ isInBox (r,c) ((rL, cL), (rH, cH))
 posAdd :: Pos -> Pos -> Pos
 posAdd (r1,c1) (r2,c2) = (r1+r2,c1+c2)
 
-data Sheet = Sheet { sheetOffset    :: Pos,
-                     sheetCells     :: Map Pos Cell,
-                     sheetFocus     :: Pos,
-                     sheetIns       :: [[(Pos, (Element, Element))]],
-                     sheetColNs     :: [Element],
-                     sheetRowNs     :: [Element] }
 grabShell :: (Pos, (Element, Element)) -> Element
 grabShell = fst . snd
 grabCell :: (Pos, (Element, Element)) -> Element
