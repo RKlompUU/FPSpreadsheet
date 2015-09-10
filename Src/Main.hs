@@ -32,6 +32,7 @@ import qualified Text.Blaze.Html.Renderer.String as HTML
 import Control.Monad
 
 import Src.Spreadsheet.Sheet
+import Src.Lambda.Lambda
 
 data KeyCode
   = KeyCodeLeft
