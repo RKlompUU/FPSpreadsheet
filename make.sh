@@ -10,6 +10,7 @@ enterDir() {
   fD=$2
   tD=$3
   if [ ! -e $fD ]; then
+    echo "$fD doesn't exist"
     return
   fi
 
@@ -17,7 +18,7 @@ enterDir() {
 
   files=$(ls $fD)
   extFiles=$(filterFileExtensions "$files" $ext)
-  dirFiles=$(filterDirs "$files" $ext)
+  dirFiles=$(filterDirs "$files" $fD)
 
   for f in $extFiles; do
     mv "$fD/$f" "$tD/$f"
@@ -25,6 +26,9 @@ enterDir() {
 
   for d in $dirFiles; do
     enterDir $ext "$fD/$d" "$tD/$d"
+    ext=$1
+    fD=$2
+    tD=$3
   done
 }
 
