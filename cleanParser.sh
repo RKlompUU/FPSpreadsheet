@@ -1,5 +1,7 @@
 #!/bin/sh
 
+exit
+
 ps=`find Src -iname *.y`
 ls=`find Src -iname *.x`
 

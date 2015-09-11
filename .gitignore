@@ -6,3 +6,4 @@ build/
 *.cache
 Src/Lambda/ExprLexer.hs
 Src/Lambda/ExprParser.hs
+out/

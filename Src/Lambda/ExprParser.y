@@ -8,7 +8,7 @@ import Data.Char
 import Text.PrettyPrint.HughesPJ (Doc, renderStyle, style, text, (<>), (<+>), parens)
 }
 
-%name parseLambdaExpressions
+%name parseLambdaExpression
 %tokentype { Token }
 %error { parseError }
 
@@ -18,16 +18,21 @@ import Text.PrettyPrint.HughesPJ (Doc, renderStyle, style, text, (<>), (<+>), pa
   '('     { TParenOpen }
   ')'     { TParenClose }
   ident   { TVar $$ }
+  digit   { TInt $$ }
 
 %%
 
-lc : var        { $1 }
+lc : con        { $1 }
+   | var        { $1 }
    | lam        { $1 }
    | app        { $1 }
    | '(' lc ')' { $2 }
 
-lcRec : var         { $1 }
+lcRec : con         { $1 }
+      | var         { $1 }
       | '(' lc ')'  { $2 }
+
+con : digit { CInt (read $1) }
 
 var : ident { Var $1 }
 
@@ -37,8 +42,6 @@ app : lcRec lcRec { App $1 $2 }
 
 
 {
-type Ident = String
-
 data LC v = CInt Int
           | Var v
           | Lam v (LC v)
