@@ -10,7 +10,8 @@ Want to run the old binary?')
 function run {
   noIArguments=$(filterString "$*" -i)
   if anyString "$*" -i; then
-    ghci Src/Main.hs
+    debugModule=`choice "$(find Src -iname *.hs)"`
+    ghci $debugModule
   else
     ./bin/Main $noIArguments
   fi

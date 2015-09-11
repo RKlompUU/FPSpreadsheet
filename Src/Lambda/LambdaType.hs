@@ -6,7 +6,8 @@ module Src.Lambda.LambdaType where
 import Data.List
 import Data.Char
 import Text.PrettyPrint.HughesPJ (Doc, renderStyle, style, text, (<>), (<+>), parens)
-import Text.ParserCombinators.ReadP
+
+import ParseLib.Abstract
 
 data LC v = CInt Int
           | Var v
@@ -24,51 +25,30 @@ allVars (Var v) = [v]
 allVars (Lam _ e) = allVars e
 allVars (App f a) = allVars f `union` allVars a
 
-instance (Read v) => Read (LC v) where
-  readsPrec _ = readP_to_S pLC
+--instance (Read v) => Read (LC v) where
+--  readsPrec _ = readP_to_S pLC
 
-pLC, pLCAtom, pLCVar, pLCLam, pLCApp :: (Read v) => ReadP (LC v)
-pLC = pLCLam +++ pLCApp +++ pLCLet
+pAnyLetter :: Parser Char Char
+pAnyLetter = choice $ map symbol (['a'..'z'] ++ ['A'..'Z'])
 
-pLCVar = do
-  v <- pVar
-  return $ Var v
+pWSpace :: Parser Char String
+pWSpace = greedy $ choice $ map symbol [' ', '\n', '\r', '\t']
 
-pLCLam = do
-  schar '\\'
-  v <- pVar
-  schar '.'
-  e <- pLC
-  return $ Lam v e
+parseLC :: String -> LC Char
+parseLC = fst . head . parse (pLC <* eof)
 
-pLCApp = do
-  es <- many1 pLCAtom
-  return $ foldl1 App es
+pLC, pVar, pLam, pApp :: Parser Char (LC Char)
+pLC =  pVar
+   <|> bracketed pLam
+   <|> braced pApp
+   <|> parenthesised pLC
 
-pLCAtom = pLCVar +++ (do schar '('; e <- pLC; schar ')'; return e)
+pVar = Var <$> (pWSpace *> pAnyLetter)
 
-pLCLet :: (Read v) => ReadP (LC v)
-pLCLet = do
-  let lcLet (x,e) b = App (Lam x b) e
-      pDef = do
-        v <- pVar
-        schar '='
-        e <- pLC
-        return (v, e)
-  sstring "let"
-  bs <- sepBy pDef (schar ';')
-  sstring "in"
-  e <- pLC
-  return $ foldr lcLet e bs
+pLam = Lam <$> (symbol '\\' *> pWSpace *> pAnyLetter) <*> (symbol '.' *> pLC)
 
-schar :: Char -> ReadP Char
-schar c = do skipSpaces; char c
+pApp = App <$> pLC <*> pLC
 
-sstring :: String -> ReadP String
-sstring c = do skipSpaces; string c
-
-pVar :: (Read v) => ReadP v
-pVar = do skipSpaces; readS_to_P (readsPrec 9)
 
 instance (Show v) => Show (LC v) where
   show = renderStyle style . ppLC 0
