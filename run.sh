@@ -11,7 +11,9 @@ function run {
   noIArguments=$(filterString "$*" -i)
   if anyString "$*" -i; then
     debugModule=`choice "$(find Src -iname *.hs)"`
+    ./genParser.sh
     ghci $debugModule
+    ./cleanParser.sh
   else
     ./bin/Main $noIArguments
   fi

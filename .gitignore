@@ -4,3 +4,5 @@ build/
 *.hi
 *.o
 *.cache
+Src/Lambda/ExprLexer.hs
+Src/Lambda/ExprParser.hs

@@ -39,23 +39,23 @@ app : lcRec lcRec { App $1 $2 }
 {
 type Ident = String
 
-data LC = CInt Int
-        | Var Ident
-        | Lam Ident LC
-        | App LC LC
-        deriving (Eq, Show)
+data LC v = CInt Int
+          | Var v
+          | Lam v (LC v)
+          | App (LC v) (LC v)
+          deriving (Eq)
 
 parseError :: [Token] -> a
 parseError ts = error "Parse error, [Token]: " (show ts)
 
 
-freeVars :: LC -> [Ident]
+freeVars :: Eq v => LC v -> [v]
 freeVars (CInt _) = []
 freeVars (Var v) = [v]
 freeVars (Lam v e) = freeVars e \\ [v]
 freeVars (App f a) = freeVars f `union` freeVars a
 
-allVars :: LC -> [String]
+allVars :: Eq v => LC v -> [v]
 allVars (CInt _) = []
 allVars (Var v) = [v]
 allVars (Lam _ e) = allVars e
