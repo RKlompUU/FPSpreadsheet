@@ -2,7 +2,7 @@ module Src.Lambda.IdInt where
 
 import qualified Data.Map as M
 import Control.Monad.State
-import Src.Lambda.LambdaType
+import Src.Lambda.ExprParser
 
 newtype IdInt = IdInt Int
   deriving (Eq, Ord)
@@ -37,6 +37,7 @@ convVar v = do
     Just ii -> return ii
 
 conv :: (Ord v) => LC v -> M v (LC IdInt)
+conv (CInt i) = return $ CInt i
 conv (Var v) = liftM Var (convVar v)
 conv (Lam v e) = liftM2 Lam (convVar v) (conv e)
 conv (App f a) = liftM2 App (conv f) (conv a)
