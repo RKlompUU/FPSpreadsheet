@@ -1,16 +1,15 @@
 module Src.Lambda.Test where
 
 import Src.Lambda.ExprParser
-import Src.Lambda.IdInt
 import Src.Lambda.Lambda
 
 
-lambdaTests :: [(String, LC IdInt -> IO ())]
+lambdaTests :: [(String, LC String -> IO ())]
 lambdaTests = [ (("pLam"), testLambdaParser)
               , (("nfLam"), testNFLam) ]
 
-testLambdaParser :: LC IdInt -> IO ()
-testLambdaParser = print . show
+testLambdaParser :: LC String -> IO ()
+testLambdaParser = print
 
-testNFLam :: LC IdInt -> IO ()
-testNFLam = print . nf
+testNFLam :: LC String -> IO ()
+testNFLam = putStrLn . show . nf . toIdInt

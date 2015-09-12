@@ -13,8 +13,12 @@ tokens :-
   \\                       { \s -> TLambda }
   "("                      { \s -> TParenOpen }
   ")"                      { \s -> TParenClose }
+  "let"                    { \s -> TLet }
+  "in"                     { \s -> TIn }
   $ident($ident | $digit)* { \s -> TVar s }
   $digit+                  { \s -> TInt s }
+  "="                      { \s -> TIs }
+  ";"                      { \s -> TSep }
 {
 
 -- Identifier
@@ -27,5 +31,9 @@ data Token =
   | TParenClose
   | TVar TIdent
   | TInt TIdent
+  | TLet
+  | TIs
+  | TIn
+  | TSep
   deriving (Eq, Show)
 }

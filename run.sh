@@ -15,7 +15,7 @@ function run {
     ghci $debugModule
     ./cleanParser.sh
   else
-    ./bin/Main $noIArguments
+    ./bin/Main $noIArguments <&0
   fi
 }
 

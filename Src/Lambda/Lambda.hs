@@ -1,4 +1,6 @@
-module Src.Lambda.Lambda where
+module Src.Lambda.Lambda
+  ( module Src.Lambda.Lambda
+  , toIdInt ) where
 
 import Data.List
 import Src.Lambda.ExprParser
@@ -43,7 +45,6 @@ subst x s b = sub b
 newId :: [IdInt] -> IdInt
 newId vs = head ([firstBoundId ..] \\ vs)
 
-parseExpr :: String -> LC IdInt
-parseExpr str = toIdInt
-              $ parseLambdaExpression
+parseExpr :: String -> LC String
+parseExpr str = parseLambdaExpression
               $ alexScanTokens str

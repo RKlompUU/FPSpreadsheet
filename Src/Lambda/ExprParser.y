@@ -19,13 +19,18 @@ import Text.PrettyPrint.HughesPJ (Doc, renderStyle, style, text, (<>), (<+>), pa
   ')'     { TParenClose }
   ident   { TVar $$ }
   digit   { TInt $$ }
+  "let"   { TLet }
+  "="     { TIs }
+  "in"    { TIn }
+  ';'     { TSep }
 
 %%
 
 lc : con        { $1 }
    | var        { $1 }
    | lam        { $1 }
-   | app        { $1 }
+   | apps       { $1 }
+   | let        { $1 }
    | '(' lc ')' { $2 }
 
 lcRec : con         { $1 }
@@ -38,10 +43,24 @@ var : ident { Var $1 }
 
 lam : '\\' ident '.' lc { Lam $2 $4 }
 
+apps : app      { $1 }
+     | apps lcRec { App $1 $2 }
+
 app : lcRec lcRec { App $1 $2 }
 
+let : "let" letEntrys "in" lc { transformLet $2 $4 }
+
+letEntrys : letEntry               { [$1] }
+          | letEntrys ';' letEntry { $3 : $1 }
+
+letEntry : ident "=" lc { ($1, $3) }
 
 {
+type IdentTy = String
+transformLet :: [(IdentTy, LC IdentTy)] -> LC IdentTy -> LC IdentTy
+transformLet vars inExpr = foldr let2LamApp inExpr vars
+  where let2LamApp (var, expr) inExpr = App (Lam var inExpr) expr
+
 data LC v = CInt Int
           | Var v
           | Lam v (LC v)
@@ -68,10 +87,14 @@ allVars (App f a) = allVars f `union` allVars a
 instance (Show v) => Show (LC v) where
   show = renderStyle style . ppLC 0
 
+
+quotelessShow :: Show a => a -> String
+quotelessShow = filter (/= '\"') . show
+
 ppLC :: (Show v) => Int -> LC v -> Doc
 ppLC _ (CInt i) = text $ show i
-ppLC _ (Var v) = text $ show v
-ppLC p (Lam v e) = pparens (p>0) $ text ("\\" ++ show v ++ ".") <> ppLC 0 e
+ppLC _ (Var v) = text $ quotelessShow v
+ppLC p (Lam v e) = pparens (p>0) $ text ("\\" ++ quotelessShow v ++ ".") <> ppLC 0 e
 ppLC p (App f a) = pparens (p>1) $ ppLC 1 f <+> ppLC 2 a
 
 pparens :: Bool -> Doc -> Doc
