@@ -13,13 +13,11 @@ for l in $ls; do
   fi
 
   if [ "$t1" != "$t2" ]; then
-    alex $l
-    echo `stat -c %y "$l"` > $tStampF
+    alex $l && echo `stat -c %y "$l"` > $tStampF
     hF="${l/Lexer\.x/Parser\.y}"
     tStampF=build/.$(basename $hF).tP
     if [ -f $hF ]; then
-      happy $hF
-      echo `stat -c %y "$hF"` > $tStampF
+      happy $hF && echo `stat -c %y "$hF"` > $tStampF
     fi
   fi
 done
@@ -35,7 +33,6 @@ for p in $ps; do
   fi
 
   if [ "$t1" != "$t2" ]; then
-    echo `stat -c %y "$p"` > $tStampF
-    happy $p
+    happy $p && echo `stat -c %y "$p"` > $tStampF
   fi
 done

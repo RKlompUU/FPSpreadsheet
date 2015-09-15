@@ -41,7 +41,10 @@ con : digit { CInt (read $1) }
 
 var : ident { Var $1 }
 
-lam : '\\' ident '.' lc { Lam $2 $4 }
+lam : '\\' ident idents '.' lc { Lam $2 $4 }
+
+idents : {-empty-}    { [] }
+       | idents ident { $2 : $1 }
 
 apps : app      { $1 }
      | apps lcRec { App $1 $2 }
