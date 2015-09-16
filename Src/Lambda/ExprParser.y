@@ -41,7 +41,7 @@ con : digit { CInt (read $1) }
 
 var : ident { Var $1 }
 
-lam : '\\' ident idents '.' lc { Lam $2 $4 }
+lam : '\\' idents ident '.' lc { foldFuncArgs2Lams ($3 : $2) $5 }
 
 idents : {-empty-}    { [] }
        | idents ident { $2 : $1 }
@@ -60,9 +60,15 @@ letEntry : ident "=" lc { ($1, $3) }
 
 {
 type IdentTy = String
+
+
+foldFuncArgs2Lams :: [IdentTy] -> LC IdentTy -> LC IdentTy
+foldFuncArgs2Lams args expr = foldl arg2Lam expr args
+  where arg2Lam expr arg = Lam arg expr
+
 transformLet :: [(IdentTy, LC IdentTy)] -> LC IdentTy -> LC IdentTy
-transformLet vars inExpr = foldr let2LamApp inExpr vars
-  where let2LamApp (var, expr) inExpr = App (Lam var inExpr) expr
+transformLet vars inExpr = foldl let2LamApp inExpr vars
+  where let2LamApp inExpr (var, expr) = App (Lam var inExpr) expr
 
 data LC v = CInt Int
           | Var v

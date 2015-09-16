@@ -40,8 +40,6 @@ enterDir o  build Src
 
 ghc --make -O Src/Main.hs 2>&1
 
-./cleanParser.sh
-
 enterDir hi Src build
 enterDir o  Src build
 
