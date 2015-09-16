@@ -38,7 +38,7 @@ enterDir() {
 enterDir hi build Src
 enterDir o  build Src
 
-ghc --make -O Src/Main.hs 2>&1
+cabal exec ghc -- --make -O Src/Main.hs 2>&1
 
 ./cleanParser.sh
 
