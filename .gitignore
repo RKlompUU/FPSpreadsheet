@@ -7,3 +7,5 @@ build/
 Src/Lambda/ExprLexer.hs
 Src/Lambda/ExprParser.hs
 out/
+cabal.sandbox.config
+.cabal-sandbox/
