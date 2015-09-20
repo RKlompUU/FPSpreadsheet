@@ -5,7 +5,7 @@ import Src.Lambda.ExprLexer
 
 import Data.List
 import Data.Char
-import Text.PrettyPrint.HughesPJ (Doc, renderStyle, style, text, (<>), (<+>), parens)
+import Text.PrettyPrint.HughesPJ
 }
 
 %name parseLambdaExpression
@@ -71,6 +71,7 @@ transformLet vars inExpr = foldl let2LamApp inExpr vars
   where let2LamApp inExpr (var, expr) = App (Lam var inExpr) expr
 
 data LC v = CInt Int
+          | CList [LC v]
           | Var v
           | Lam v (LC v)
           | App (LC v) (LC v)
@@ -82,12 +83,14 @@ parseError ts = error "Parse error, [Token]: " (show ts)
 
 freeVars :: Eq v => LC v -> [v]
 freeVars (CInt _) = []
+freeVars (CList l) = concatMap freeVars l
 freeVars (Var v) = [v]
 freeVars (Lam v e) = freeVars e \\ [v]
 freeVars (App f a) = freeVars f `union` freeVars a
 
 allVars :: Eq v => LC v -> [v]
 allVars (CInt _) = []
+allVars (CList l) = concatMap freeVars l
 allVars (Var v) = [v]
 allVars (Lam _ e) = allVars e
 allVars (App f a) = allVars f `union` allVars a
@@ -102,6 +105,7 @@ quotelessShow = filter (/= '\"') . show
 
 ppLC :: (Show v) => Int -> LC v -> Doc
 ppLC _ (CInt i) = text $ show i
+ppLC _ (CList l) = text "[" <> (hcat $ intersperse (text ",") $ map (ppLC 0) l) <> text "]"
 ppLC _ (Var v) = text $ quotelessShow v
 ppLC p (Lam v e) = pparens (p>0) $ text ("\\" ++ quotelessShow v ++ ".") <> ppLC 0 e
 ppLC p (App f a) = pparens (p>1) $ ppLC 1 f <+> ppLC 2 a

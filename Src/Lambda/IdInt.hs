@@ -17,8 +17,8 @@ instance Enum IdInt where
 instance Show IdInt where
   show (IdInt i) = if i < 0 then "f" ++ show (-i) else "x" ++ show i
 
-toIdInt :: (Ord v) => LC v -> LC IdInt
-toIdInt e = evalState (conv e) (0, fvmap)
+toIdInt :: LC String -> LC IdInt
+toIdInt e = evalState (conv e) (2, fvmap)
   where fvmap = foldr (\(v, i) m -> M.insert v (IdInt (-i)) m)
                       M.empty
                       (zip (freeVars e) [1..])
@@ -36,8 +36,10 @@ convVar v = do
       return ii
     Just ii -> return ii
 
-conv :: (Ord v) => LC v -> M v (LC IdInt)
+conv :: LC String -> M String (LC IdInt)
 conv (CInt i) = return $ CInt i
+conv (Var "toInt") = return $ Var (IdInt 0)
+conv (Var "toList") = return $ Var (IdInt 1)
 conv (Var v) = liftM Var (convVar v)
 conv (Lam v e) = liftM2 Lam (convVar v) (conv e)
 conv (App f a) = liftM2 App (conv f) (conv a)

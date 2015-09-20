@@ -12,12 +12,21 @@ let true = \t f. t;
     three = plus one two;
     four = plus two two;
 
-    pair = \x y z. z x y;
-    fst  = \p. p (\x y. x);
-    snd  = \p. p (\x y. y);
+    pair = \x y f. f x y;
+    fst  = \p. p true;
+    snd  = \p. p false;
 
-    nil  = \c n. n;
-    cons = \h t c n. c h (t c n);
-    head = \l. l (\h t. h) false;
-    tail = \l c n. l (\h t g. g h (t c)) (\t. n) (\h t. t)
-in cons two (cons one nil)
+    nil  = \x. true;
+    cons = pair;
+    head = fst;
+    tail = snd;
+    null = \p. p (\x y. false);
+
+    compose = \f g x. f (g x);
+
+    Y = \g. (\x. g (x x)) (\x. g (x x));
+
+    map = Y (\r f l. ((null l) nil (cons (f (head l)) (r f (tail l)))));
+    id = \x. x;
+    l = cons two (cons one nil)
+in toList (map (compose toInt (plus four)) l)
