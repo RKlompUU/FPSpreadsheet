@@ -1,4 +1,4 @@
-module Src.Lambda.ExprLexer2 where
+module Src.Lambda.ExprLexer where
 
 import ParseLib.Abstract
 import Data.Char

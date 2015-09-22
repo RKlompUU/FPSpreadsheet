@@ -4,7 +4,7 @@ module Src.Lambda.Lambda
 
 import Data.List
 import Src.Lambda.ExprParser
-import Src.Lambda.ExprLexer2
+import Src.Lambda.ExprLexer
 import Src.Lambda.IdInt
 import Debug.Trace
 
