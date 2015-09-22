@@ -83,12 +83,6 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) k
   --dumpHtml rootWindow debugField
   return ()
 
-cellMod :: String -> Pos -> Sheet -> Sheet
-cellMod cCnt cPos sh
-  = sh {
-      sheetCells = Map.insert cPos (Right cCnt) (sheetCells sh)
-    }
-
 shellKeyHandler :: Element -> TVar Sheet -> (Pos, (Element,Element)) -> KeyCode -> UI ()
 shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEnter
   = do

@@ -2,7 +2,7 @@
 module Src.Lambda.ExprLexer where
 }
 
-%wrapper "basic"
+%wrapper "monad"
 
 $digit = [0-9]
 $ident = [a-zA-Z\+\-]
@@ -36,4 +36,6 @@ data Token =
   | TIn
   | TSep
   deriving (Eq, Show)
+
+alexEOF = undefined
 }

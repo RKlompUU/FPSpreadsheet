@@ -4,9 +4,15 @@ module Src.Lambda.Lambda
 
 import Data.List
 import Src.Lambda.ExprParser
-import Src.Lambda.ExprLexer
+import Src.Lambda.ExprLexer2
 import Src.Lambda.IdInt
 import Debug.Trace
+
+
+
+parseExpr :: String -> Maybe (LC String)
+parseExpr str = scanExpr str >>= parseLambdaExpression
+
 
 -- Heavily inspired by Lennar Augustsson's paper "Lamda Calculus Cooked Four Ways"
 
@@ -69,7 +75,3 @@ subst x s b = sub b
 
 newId :: [IdInt] -> IdInt
 newId vs = head ([firstBoundId ..] \\ vs)
-
-parseExpr :: String -> LC String
-parseExpr str = parseLambdaExpression
-              $ alexScanTokens str

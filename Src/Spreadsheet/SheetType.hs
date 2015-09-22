@@ -6,10 +6,10 @@ import qualified Data.Map as Map
 
 import Graphics.UI.Threepenny.Core
 
-data Expr = Var String -- placeholder
-          deriving Show
+import Src.Lambda.ExprParser
 
-type Cell = Either Expr String
+data Cell = Cell { text :: String
+                 , lTerm :: Maybe (LC String) }
 
 type Pos = (Int, Int)
 

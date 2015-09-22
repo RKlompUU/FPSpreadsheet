@@ -43,7 +43,7 @@ arg2Func = lambdaTests
 runTests cmds
   = do
   src <- getContents
-  let abstr = parseExpr src
+  let abstr = fromJust $ parseExpr src
   mapM_ (\(l,f)  -> putStrLn " |"
          >>= (\_ -> putStrLn "\\ /")
          >>= (\_ -> putStrLn " `")

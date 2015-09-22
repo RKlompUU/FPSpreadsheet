@@ -1,15 +1,19 @@
 {
 module Src.Lambda.ExprParser where
 
-import Src.Lambda.ExprLexer
+import Src.Lambda.ExprLexer2
 
 import Data.List
 import Data.Char
 import Text.PrettyPrint.HughesPJ
+-- %error { parseError }
+
+import Control.Monad.Error
 }
 
 %name parseLambdaExpression
 %tokentype { Token }
+%monad { Maybe } { >>= } { return }
 %error { parseError }
 
 %token
@@ -77,8 +81,8 @@ data LC v = CInt Int
           | App (LC v) (LC v)
           deriving (Eq)
 
-parseError :: [Token] -> a
-parseError ts = error "Parse error, [Token]: " (show ts)
+parseError :: [Token] -> Maybe a
+parseError ts = Nothing
 
 
 freeVars :: Eq v => LC v -> [v]
