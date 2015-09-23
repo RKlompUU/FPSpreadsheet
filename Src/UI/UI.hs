@@ -13,6 +13,7 @@ import qualified Text.Blaze.Html as HTML
 import qualified Text.Blaze.Html.Renderer.String as HTML
 import qualified Data.Map as Map
 
+import Debug.Trace
 
 getHtml :: JSFunction String
 getHtml = ffi "document.documentElement.innerHTML"
@@ -59,6 +60,24 @@ setup rootWindow
 
   return ()
 
+
+printText :: TVar Sheet -> Pos -> Pos -> UI ()
+printText ctxSh inPos cOffset
+  = do
+  sh <- getSheet ctxSh
+  case Map.lookup (inPos `posAdd` cOffset) (sheetCells sh) of
+    Just c -> element (getSheetIn inPos sh) # set UI.value (show (Src.Spreadsheet.Sheet.text c)) >> return ()
+    _ -> return ()
+
+printEval :: TVar Sheet -> Pos -> Pos -> UI ()
+printEval ctxSh inPos cOffset
+  = do
+  sh <- getSheet ctxSh
+  let c' = Map.lookup (inPos `posAdd` cOffset) (sheetCells sh)
+  case (c' >>= lExpr) of
+    Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+    _ -> return ()
+
 -- sheet modification
 sheetMod :: TVar Sheet -> Window -> Element -> (Pos, (Element,Element)) -> KeyCode -> UI ()
 --sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell))
@@ -69,7 +88,10 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEnter
   cCnt <- get UI.value (getSheetIn inPos sh)
   cPos <- getAbsoluteCPos ctxSh inPos
   let sh' = cellMod cCnt cPos sh
+
   liftIO $ atomically $ writeTVar ctxSh sh'
+  printEval ctxSh inPos (sheetOffset sh')
+    
 --  UI.setFocus inShell
 --  element debugField # set UI.text (show (sheetOffset sh))
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
@@ -77,6 +99,7 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
   sh <- getSheet ctxSh
   cPos <- getAbsoluteCPos ctxSh inPos
   cell2In (sheetCells sh) cPos inCell
+  printEval ctxSh inPos (sheetOffset sh)
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) k
   = do
   element debugField # set UI.text (show k)

@@ -1,6 +1,7 @@
 module Src.Lambda.Lambda
   ( module Src.Lambda.Lambda
-  , toIdInt ) where
+  , toIdInt, fromIdInt
+  , LC(..) ) where
 
 import Data.List
 import Src.Lambda.ExprParser
@@ -9,15 +10,25 @@ import Src.Lambda.IdInt
 import Debug.Trace
 
 
+cRefPos2Var :: (Int, Int) -> String
+cRefPos2Var (r,c) = show r ++ colRefs !! c
 
 parseExpr :: String -> Maybe (LC String)
 parseExpr str = scanExpr str >>= parseLambdaExpression
 
+addCellRefs :: [(String, LC String)] -> LC String -> LC String
+addCellRefs rs = cVar2Vars . transformLet rs
+
+cVar2Vars :: LC String -> LC String
+cVar2Vars (CVar p) = Var $ cRefPos2Var p
+cVar2Vars (Lam x e)    = Lam x (cVar2Vars e)
+cVar2Vars (App e1 e2)  = App (cVar2Vars e1) (cVar2Vars e2)
+cVar2Vars e = e
 
 -- Heavily inspired by Lennar Augustsson's paper "Lamda Calculus Cooked Four Ways"
 
 nf :: LC IdInt -> LC IdInt
-nf e = nf' e
+nf e = nf' (e)
 {-  = case nf' e of
       e'@(Var _) -> e'
       e'@(Lam _ _) -> e'

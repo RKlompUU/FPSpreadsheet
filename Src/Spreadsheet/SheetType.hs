@@ -7,9 +7,10 @@ import qualified Data.Map as Map
 import Graphics.UI.Threepenny.Core
 
 import Src.Lambda.ExprParser
+import Src.Lambda.IdInt
 
-data Cell = Cell { text :: String
-                 , lTerm :: Maybe (LC String) }
+data Cell = Cell { text  :: String
+                 , lExpr :: Maybe (LC IdInt) }
 
 type Pos = (Int, Int)
 

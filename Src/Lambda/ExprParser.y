@@ -27,11 +27,13 @@ import Control.Monad.Error
   "="     { TIs }
   "in"    { TIn }
   ';'     { TSep }
+  cellRef { TCellRef $$ }
 
 %%
 
 lc : con        { $1 }
    | var        { $1 }
+   | cVar       { $1 }
    | lam        { $1 }
    | apps       { $1 }
    | let        { $1 }
@@ -39,11 +41,14 @@ lc : con        { $1 }
 
 lcRec : con         { $1 }
       | var         { $1 }
+      | cVar        { $1 }
       | '(' lc ')'  { $2 }
 
 con : digit { CInt (read $1) }
 
 var : ident { Var $1 }
+
+cVar : cellRef { CVar $1 }
 
 lam : '\\' idents ident '.' lc { foldFuncArgs2Lams ($3 : $2) $5 }
 
@@ -70,13 +75,14 @@ foldFuncArgs2Lams :: [IdentTy] -> LC IdentTy -> LC IdentTy
 foldFuncArgs2Lams args expr = foldl arg2Lam expr args
   where arg2Lam expr arg = Lam arg expr
 
-transformLet :: [(IdentTy, LC IdentTy)] -> LC IdentTy -> LC IdentTy
+transformLet :: [(a, LC a)] -> LC a -> LC a
 transformLet vars inExpr = foldl let2LamApp inExpr vars
   where let2LamApp inExpr (var, expr) = App (Lam var inExpr) expr
 
 data LC v = CInt Int
           | CList [LC v]
           | Var v
+          | CVar (Int, Int)
           | Lam v (LC v)
           | App (LC v) (LC v)
           deriving (Eq)
