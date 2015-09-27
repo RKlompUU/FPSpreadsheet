@@ -8,7 +8,7 @@ newtype IdInt = IdInt Int
   deriving (Eq, Ord)
 
 firstBoundId :: IdInt
-firstBoundId = IdInt 0
+firstBoundId = IdInt 2
 
 instance Enum IdInt where
   toEnum i = IdInt i
@@ -29,7 +29,7 @@ toIdInt :: LC String -> LC IdInt
 toIdInt e = evalState (conv e) (2, fvmap)
   where fvmap = foldr (\(v, i) m -> M.insert v (IdInt (-i)) m)
                       M.empty
-                      (zip (freeVars e) [1..])
+                      (zip (freeVars e) [2..])
 
 -- A state monad that has the next unused Int and a mapping of identifiers to IdInt
 type M v a = State (Int, M.Map v IdInt) a

@@ -61,22 +61,29 @@ setup rootWindow
   return ()
 
 
-printText :: TVar Sheet -> Pos -> Pos -> UI ()
-printText ctxSh inPos cOffset
+printText :: TVar Sheet -> Pos -> UI ()
+printText ctxSh cPos
   = do
   sh <- getSheet ctxSh
-  case Map.lookup (inPos `posAdd` cOffset) (sheetCells sh) of
-    Just c -> element (getSheetIn inPos sh) # set UI.value (show (Src.Spreadsheet.Sheet.text c)) >> return ()
+  let inPos = cPos `posSubtr` sheetOffset sh
+  case isInBox inPos (sheetInSize sh) of
+    Nothing -> do
+      case Map.lookup cPos (sheetCells sh) of
+        Just c -> element (getSheetIn inPos sh) # set UI.value (show (Src.Spreadsheet.Sheet.text c)) >> return ()
+        _ -> return ()
     _ -> return ()
 
-printEval :: TVar Sheet -> Pos -> Pos -> UI ()
-printEval ctxSh inPos cOffset
+printEval :: TVar Sheet -> Pos -> UI ()
+printEval ctxSh cPos
   = do
-  sh <- getSheet ctxSh
-  let c' = Map.lookup (inPos `posAdd` cOffset) (sheetCells sh)
-  case (c' >>= lExpr) of
-    Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
-    _ -> return ()
+  sh <- trace ("Printing eval pos: " ++ show cPos) getSheet ctxSh
+  let inPos = cPos `posSubtr` sheetOffset sh
+  case trace ("sheetOffset: " ++ show (sheetOffset sh)) isInBox inPos (sheetInSize sh) of
+    Nothing -> do
+      case Map.lookup cPos (sheetCells sh) >>= lExpr of
+        Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+        _ -> trace "No expr!" return ()
+    _ -> trace "not inside!" return ()
 
 -- sheet modification
 sheetMod :: TVar Sheet -> Window -> Element -> (Pos, (Element,Element)) -> KeyCode -> UI ()
@@ -90,8 +97,10 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEnter
   let sh' = cellMod cCnt cPos sh
 
   liftIO $ atomically $ writeTVar ctxSh sh'
-  printEval ctxSh inPos (sheetOffset sh')
-    
+  mapM (\cPos -> printEval ctxSh cPos) (Map.keys . grabUpdatedCells $ sheetCells sh')
+  let sh'' = sh' { sheetCells = resetUpdateFields (sheetCells sh')}
+  liftIO $ atomically $ writeTVar ctxSh sh''
+
 --  UI.setFocus inShell
 --  element debugField # set UI.text (show (sheetOffset sh))
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
@@ -99,7 +108,7 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
   sh <- getSheet ctxSh
   cPos <- getAbsoluteCPos ctxSh inPos
   cell2In (sheetCells sh) cPos inCell
-  printEval ctxSh inPos (sheetOffset sh)
+  printEval ctxSh cPos
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) k
   = do
   element debugField # set UI.text (show k)
