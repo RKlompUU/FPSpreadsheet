@@ -25,6 +25,7 @@ readonly :: Attr Element Bool
 readonly = fromJQueryProp "readonly" (== JSON.Bool True) JSON.Bool
 
 
+-- Returns the offset of a position towards a box, if the position is inside the box Nothing is returned
 isInBox :: Pos -> (Pos,Pos) -> Maybe Pos
 isInBox (r,c) ((rL, cL), (rH, cH))
   = let rOffset = if r < rL
@@ -42,7 +43,14 @@ isInBox (r,c) ((rL, cL), (rH, cH))
         else Just (rOffset,cOffset)
 
 
+grabUpdatedCells :: Sheet -> Sheet
+grabUpdatedCells = Map.filter uFlag
 
+resetUpdateFields :: Sheet -> Sheet
+resetUpdateFields = Map.map (\c -> c {uFlag = False})
+
+posSubtr :: Pos -> Pos -> Pos
+posSubtr (r1,c1) (r2,c2) = (r1-r2,c1-c2)
 
 posAdd :: Pos -> Pos -> Pos
 posAdd (r1,c1) (r2,c2) = (r1+r2,c1+c2)
@@ -63,28 +71,31 @@ getSheetCell pos cs
   = Map.findWithDefault emptyCell pos cs
 
 emptyCell :: Cell
-emptyCell = Cell "" Nothing
+emptyCell = Cell "" Nothing False
 
 updateCells :: Sheet -> Sheet
 updateCells cs
-  = Map.foldrWithKey updateCell cs cs
+  = case Map.foldrWithKey updateCell (Right cs) cs of
+      Left cs' -> updateCells cs'
+      Right cs' -> cs'
 
-updateCell :: Pos -> Cell -> Sheet -> Sheet
-updateCell p c cs
-  = let lExpr' = parseExpr (Src.Spreadsheet.SheetType.text c) >>= return . nf . toIdInt . (\v -> trace ("Test: " ++ show (expandCellRefs cs v)) (expandCellRefs cs v))
-        c'    = c { lExpr = lExpr' }
-    in case (Map.lookup p cs >>= \cOld -> return $ lExpr cOld == lExpr') of
-        -- Evaluated expr hasn't changed
-        Just True -> Map.insert p c' cs
-        -- Evaluated expr has changed, update the entire sheet
-        _ -> let cs' = trace ("lExpr': " ++ show lExpr') Map.insert p c' cs
-             in updateCells cs'
+updateCell :: Pos -> Cell -> Either Sheet Sheet -> Either Sheet Sheet
+updateCell _ _ (Left cs)  = Left cs
+updateCell p c (Right cs) =
+  let lExpr' = parseExpr (Src.Spreadsheet.SheetType.text c) >>= return . nf . toIdInt . expandCellRefs cs
+      c'    = c { lExpr = lExpr' }
+  in case (Map.lookup p cs >>= \cOld -> return $ lExpr cOld == lExpr') of
+     -- Evaluated expr hasn't changed
+     Just True -> Right $ Map.insert p c' cs
+     -- Evaluated expr has changed, update the entire sheet
+     _ -> let cs' = trace ("lExpr' " ++ show p ++ " changed: " ++ show lExpr') Map.insert p (c' {uFlag = True}) cs
+          in Left $ cs'
 
 
 expandCellRefs :: Sheet -> LC String -> LC String
 expandCellRefs cs e
   = let refPs = scanCellRefs e
-    in trace ("cellRefs: " ++ show refPs) addCellRefs (mapMaybe (\p -> (,) <$> pure (cRefPos2Var p) <*> (Map.lookup p cs >>= lExpr >>= return . fromIdInt)) refPs) e
+    in addCellRefs (mapMaybe (\p -> (,) <$> pure (cRefPos2Var p) <*> (Map.lookup p cs >>= lExpr >>= return . fromIdInt)) refPs) e
 
 scanCellRefs :: LC v -> [Pos]
 scanCellRefs (CVar p)    = [p]

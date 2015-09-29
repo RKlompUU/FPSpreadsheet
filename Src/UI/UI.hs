@@ -32,7 +32,7 @@ initUISheet = do
   let cols = 7
       rows = 12
       baseSheet = initSheet
-  cells <- replicateM (rows*cols) (UI.input # set UI.size "7")
+  cells <- replicateM (rows*cols) (UI.input # set UI.size "14")
   shells <- replicateM (rows*cols) UI.button
   rowNrs <- replicateM rows (UI.body # set UI.text "0")
   colNrs <- replicateM cols (UI.body # set UI.text "0")
@@ -127,7 +127,7 @@ cells2Ins ctxSh
 cell2In :: Sheet -> Pos -> Element -> UI ()
 cell2In cs pos elm
   = do
-  let (Cell text _) = Map.findWithDefault emptyCell pos cs
+  let (Cell text _ _) = Map.findWithDefault emptyCell pos cs
   oldVal <- get UI.value elm
   unless (text == oldVal) $ element elm # set UI.value text >> return ()
 
@@ -149,29 +149,39 @@ scrollSheet ctxSh dPos
 
 cellMod :: String -> Pos -> UISheet -> UISheet
 cellMod cCnt cPos sh
-  = let mC     = Map.lookup cPos (sheetCells sh)
-        lExpr' = parseExpr cCnt >>= return . nf . toIdInt
-        c'     = Cell cCnt lExpr'
-    in sh { sheetCells = updateCell cPos c' (sheetCells sh) }
+  = let c'     = (getSheetCell cPos (sheetCells sh)) { Src.Spreadsheet.Sheet.text = cCnt }
+        cs'    = Map.insert cPos c' (sheetCells sh)
+    in sh { sheetCells = updateCells cs' }
+
+uiSheetInSize :: UISheet -> (Pos,Pos)
+uiSheetInSize sh =
+  let rs = length $ sheetRowNs sh
+      cs = length $ sheetColNs sh
+  in ((0,0),(rs,cs))
 
 
-
-
-printText :: TVar UISheet -> Pos -> Pos -> UI ()
-printText ctxSh inPos cOffset
+printText :: TVar UISheet -> Pos -> UI ()
+printText ctxSh cPos
   = do
   sh <- getUISheet ctxSh
-  case Map.lookup (inPos `posAdd` cOffset) (sheetCells sh) of
-    Just c -> element (getSheetIn inPos sh) # set UI.value (show (Src.Spreadsheet.Sheet.text c)) >> return ()
+  let inPos = cPos `posSubtr` sheetOffset sh
+  case isInBox inPos (uiSheetInSize sh) of
+    Nothing -> do
+      case Map.lookup cPos (sheetCells sh) of
+        Just c -> element (getSheetIn inPos sh) # set UI.value (Src.Spreadsheet.Sheet.text c) >> return ()
+        _ -> return ()
     _ -> return ()
 
-printEval :: TVar UISheet -> Pos -> Pos -> UI ()
-printEval ctxSh inPos cOffset
+printEval :: TVar UISheet -> Pos -> UI ()
+printEval ctxSh cPos
   = do
   sh <- getUISheet ctxSh
-  let c' = Map.lookup (inPos `posAdd` cOffset) (sheetCells sh)
-  case (c' >>= lExpr) of
-    Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+  let inPos = cPos `posSubtr` sheetOffset sh
+  case isInBox inPos (uiSheetInSize sh) of
+    Nothing -> do
+      case Map.lookup cPos (sheetCells sh) >>= lExpr of
+        Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+        _ -> return ()
     _ -> return ()
 
 -- sheet modification
@@ -180,13 +190,15 @@ sheetMod :: TVar UISheet -> Window -> Element -> (Pos, (Element,Element)) -> Key
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEnter
   = do
   -- Save edited content in the spreadsheet, and exit input focus
-  sh <- getUISheet ctxSh
+  sh <- trace "sheetMod" getUISheet ctxSh
   cCnt <- get UI.value (getSheetIn inPos sh)
   cPos <- getAbsoluteCPos ctxSh inPos
   let sh' = cellMod cCnt cPos sh
 
   liftIO $ atomically $ writeTVar ctxSh sh'
-  printEval ctxSh inPos (sheetOffset sh')
+  mapM (\cPos -> trace (show cPos) printEval ctxSh cPos) ((\t->trace (show t) t) . Map.keys . grabUpdatedCells $ sheetCells sh')
+  let sh'' = sh' { sheetCells = resetUpdateFields (sheetCells sh')}
+  liftIO $ atomically $ writeTVar ctxSh sh''
 
 --  UI.setFocus inShell
 --  element debugField # set UI.text (show (sheetOffset sh))
@@ -195,7 +207,7 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
   sh <- getUISheet ctxSh
   cPos <- getAbsoluteCPos ctxSh inPos
   cell2In (sheetCells sh) cPos inCell
-  printEval ctxSh inPos (sheetOffset sh)
+  printEval ctxSh cPos
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) k
   = do
   element debugField # set UI.text (show k)
@@ -207,6 +219,7 @@ shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEnter
   = do
   cellHasFocus <- isFocused cCell
   UI.setFocus (if cellHasFocus then cShell else cCell)
+  when (not cellHasFocus) $ printText ctxSh cPos
 shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEsc = UI.setFocus cShell
 shellKeyHandler debugField ctxSh (cPos, (cShell,cCell)) k
   | k `elem` [KeyCodeUp, KeyCodeDown, KeyCodeLeft, KeyCodeRight]

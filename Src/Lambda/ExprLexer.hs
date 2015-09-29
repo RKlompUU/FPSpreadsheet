@@ -4,6 +4,9 @@ import ParseLib.Abstract
 import Data.Char
 import Data.Maybe
 
+import Control.Monad
+import Data.List
+
 type TIdent = String
 
 data Token =
@@ -17,6 +20,7 @@ data Token =
   | TIs
   | TIn
   | TSep
+  | TCellRef (Int, Int)
   deriving (Eq, Show)
 
 scanExpr :: String -> Maybe [Token]
@@ -40,6 +44,7 @@ terminals =
 lToken :: Parser Char Token
 lToken =  lTerminal
       <|> lVar
+      <|> lCellRef
 
 lTerminal :: Parser Char Token
 lTerminal = choice [t <$ token s | (t,s) <- terminals]
@@ -52,3 +57,13 @@ lexWhiteSpace = greedy (satisfy isSpace)
 
 lexLowerId :: Parser Char String
 lexLowerId = (:) <$> satisfy isAlpha <*> greedy (satisfy isAlphaNum)
+
+lCellRef :: Parser Char Token
+lCellRef = (\a b -> TCellRef (a,b)) <$> integer <*> (colRef2Int <$> some (satisfy isUpper))
+
+
+colRefs :: [String]
+colRefs = [1..] >>= flip replicateM ['A'..'Z']
+
+colRef2Int :: String -> Int
+colRef2Int r = fromJust $ findIndex (==r) colRefs 

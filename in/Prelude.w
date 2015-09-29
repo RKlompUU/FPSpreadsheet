@@ -29,4 +29,4 @@ let true = \t f. t;
     map = Y (\r f l. ((null l) nil (cons (f (head l)) (r f (tail l)))));
     id = \x. x;
     l = cons two (cons one nil)
-in toList (map (compose toInt (plus four)) l)
+in succ zero

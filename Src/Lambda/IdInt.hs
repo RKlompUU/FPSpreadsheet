@@ -8,7 +8,7 @@ newtype IdInt = IdInt Int
   deriving (Eq, Ord)
 
 firstBoundId :: IdInt
-firstBoundId = IdInt 0
+firstBoundId = IdInt 2
 
 instance Enum IdInt where
   toEnum i = IdInt i
@@ -17,11 +17,19 @@ instance Enum IdInt where
 instance Show IdInt where
   show (IdInt i) = if i < 0 then "f" ++ show (-i) else "x" ++ show i
 
+vars :: [String]
+vars = [1..] >>= flip replicateM ['A'..'Z']
+
+fromIdInt :: LC IdInt -> LC String
+fromIdInt (Var (IdInt v)) = Var (vars !! v)
+fromIdInt (Lam (IdInt x) e) = Lam (vars !! x) (fromIdInt e)
+fromIdInt (App e1 e2) = App (fromIdInt e1) (fromIdInt e2)
+
 toIdInt :: LC String -> LC IdInt
 toIdInt e = evalState (conv e) (2, fvmap)
   where fvmap = foldr (\(v, i) m -> M.insert v (IdInt (-i)) m)
                       M.empty
-                      (zip (freeVars e) [1..])
+                      (zip (freeVars e) [2..])
 
 -- A state monad that has the next unused Int and a mapping of identifiers to IdInt
 type M v a = State (Int, M.Map v IdInt) a
