@@ -16,12 +16,4 @@ data Cell = Cell { text  :: String
 
 type Pos = (Int, Int)
 
-data Sheet = Sheet { sheetOffset    :: Pos,
-                     sheetCells     :: Map Pos Cell,
-                     sheetFocus     :: Pos,
-                     sheetIns       :: [[(Pos, (Element, Element))]],
-                     sheetColNs     :: [Element],
-                     sheetRowNs     :: [Element] }
-
-sheetInSize :: Sheet -> (Pos, Pos)
-sheetInSize Sheet {sheetColNs = cs, sheetRowNs = rs} = ((0,0), (length rs - 1, length cs - 1))
+type Sheet = Map Pos Cell

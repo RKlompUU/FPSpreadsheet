@@ -32,3 +32,11 @@ key2Dir KeyCodeUp    = (-1,0)
 key2Dir KeyCodeRight = (0,1)
 key2Dir KeyCodeDown  = (1,-0)
 key2Dir _            = (0,0)
+
+
+data UISheet = UISheet { sheetCells  :: Sheet
+                       , sheetCursor :: Pos
+                       , sheetOffset :: Pos
+                       , sheetIns    :: [[(Pos, (Element, Element))]]
+                       , sheetColNs  :: [Element]
+                       , sheetRowNs  :: [Element] }

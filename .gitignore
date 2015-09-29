@@ -8,3 +8,4 @@ Src/Lambda/ExprParser.hs
 out/
 cabal.sandbox.config
 .cabal-sandbox/
+*.orig
