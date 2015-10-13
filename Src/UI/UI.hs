@@ -17,6 +17,9 @@ import Src.Lambda.Lambda
 
 import Debug.Trace
 
+
+type SheetTy = Sheet (LExpr String)
+
 getHtml :: JSFunction String
 getHtml = ffi "document.documentElement.innerHTML"
 
@@ -124,10 +127,10 @@ cells2Ins ctxSh
   mapM_ (\(p, (_,elm)) -> cell2In (sheetCells sh) (p `posAdd` sheetOffset sh) elm) (concat $ sheetIns sh)
   --liftIO $ atomically $ writeTVar ctxSh (sh {sheetIns = })
 
-cell2In :: Sheet -> Pos -> Element -> UI ()
+cell2In :: SheetTy -> Pos -> Element -> UI ()
 cell2In cs pos elm
   = do
-  let (Cell text _ _) = Map.findWithDefault emptyCell pos cs
+  let (CellT text _ _) = Map.findWithDefault emptyCell pos cs
   oldVal <- get UI.value elm
   unless (text == oldVal) $ element elm # set UI.value text >> return ()
 
@@ -151,7 +154,7 @@ cellMod :: String -> Pos -> UISheet -> UISheet
 cellMod cCnt cPos sh
   = let c'     = (getSheetCell cPos (sheetCells sh)) { Src.Spreadsheet.Sheet.text = cCnt }
         cs'    = Map.insert cPos c' (sheetCells sh)
-    in sh { sheetCells = updateCells cs' }
+    in sh { sheetCells = updateEvals cs' }
 
 uiSheetInSize :: UISheet -> (Pos,Pos)
 uiSheetInSize sh =
@@ -180,7 +183,7 @@ printEval ctxSh cPos
   case isInBox inPos (uiSheetInSize sh) of
     Nothing -> do
       case Map.lookup cPos (sheetCells sh) >>= lExpr of
-        Just e -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+        Just (LExpr e _) -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
         _ -> return ()
     _ -> return ()
 

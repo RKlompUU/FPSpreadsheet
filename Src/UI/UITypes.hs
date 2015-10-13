@@ -34,7 +34,7 @@ key2Dir KeyCodeDown  = (1,-0)
 key2Dir _            = (0,0)
 
 
-data UISheet = UISheet { sheetCells  :: Sheet
+data UISheet = UISheet { sheetCells  :: Sheet (LExpr String)
                        , sheetCursor :: Pos
                        , sheetOffset :: Pos
                        , sheetIns    :: [[(Pos, (Element, Element))]]

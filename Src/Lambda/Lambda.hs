@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 module Src.Lambda.Lambda
   ( module Src.Lambda.Lambda
   , toIdInt, fromIdInt
@@ -8,6 +9,21 @@ import Src.Lambda.ExprParser
 import Src.Lambda.ExprLexer
 import Src.Lambda.IdInt
 import Debug.Trace
+
+import Src.API.SheetAbstr
+
+import qualified Data.Map as Map
+
+instance Var String where
+
+data LExpr v = LExpr { lExpr_ :: (LC v)
+                     , lLets_ :: (Map.Map v (LExpr v)) }
+  deriving Show
+
+instance Expr (LExpr String) String where
+  addGlobalVar lambda@LExpr { lLets_ = vars} v definition = lambda {lLets_ = Map.insert v definition vars}
+  cleanGlobalVars lambda = lambda {lLets_ = Map.empty}
+  evalExpr _ lambda@LExpr {lExpr_ = e, lLets_ = vars} = lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
 
 
 cRefPos2Var :: (Int, Int) -> String
