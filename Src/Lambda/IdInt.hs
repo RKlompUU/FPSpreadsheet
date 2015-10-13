@@ -42,7 +42,7 @@ unchurchList (Lam _ e) = CList $ uL e
 
 intVar2Str :: Int -> String
 intVar2Str i | i >= 0    = vars !! i
-               | otherwise = '-' : vars !! i
+             | otherwise = '-' : vars !! i
 
 -- Translating from the evaluated LC IdInt to an LC String that can be printed
 fromIdInt :: LC IdInt -> LC String
