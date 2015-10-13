@@ -15,7 +15,7 @@ data Token =
   | TParenOpen
   | TParenClose
   | TVar TIdent
-  | TInt TIdent
+  | TInt Int
   | TLet
   | TIs
   | TIn
@@ -45,12 +45,16 @@ lToken :: Parser Char Token
 lToken =  lTerminal
       <|> lVar
       <|> lCellRef
+      <|> lInt
 
 lTerminal :: Parser Char Token
 lTerminal = choice [t <$ token s | (t,s) <- terminals]
 
 lVar :: Parser Char Token
 lVar = TVar <$> lexLowerId
+
+lInt :: Parser Char Token
+lInt = TInt <$> natural
 
 lexWhiteSpace :: Parser Char String
 lexWhiteSpace = greedy (satisfy isSpace)
@@ -66,4 +70,4 @@ colRefs :: [String]
 colRefs = [1..] >>= flip replicateM ['A'..'Z']
 
 colRef2Int :: String -> Int
-colRef2Int r = fromJust $ findIndex (==r) colRefs 
+colRef2Int r = fromJust $ findIndex (==r) colRefs

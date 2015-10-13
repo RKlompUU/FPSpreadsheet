@@ -27,7 +27,7 @@ instance Expr (LExpr String) String where
 
 
 cRefPos2Var :: (Int, Int) -> String
-cRefPos2Var (r,c) = show r ++ colRefs !! c
+cRefPos2Var (r,c) = trace (show c) show r ++ colRefs !! c
 
 parseExpr :: String -> Maybe (LC String)
 parseExpr str = scanExpr str >>= parseLambdaExpression
@@ -71,19 +71,6 @@ whnf (App f a) =
   case whnf f of
     Lam x b -> whnf (subst x a b)
     f' -> App f' a
-
-
-unchurchInt :: LC IdInt -> LC IdInt
-unchurchInt (Lam _ e) = CInt $ countDepth e
-  where countDepth (Lam _ e') = countDepth e'
-        countDepth (App _ e') = 1 + countDepth e'
-        countDepth _ = 0
-
-unchurchList :: LC IdInt -> LC IdInt
-unchurchList (Lam _ e) = CList $ uL e
-  where uL (Lam _ e) = uL e
-        uL (App (App _ h) t) = h : uL t
-        uL  _ = []
 
 subst :: IdInt -> LC IdInt -> LC IdInt -> LC IdInt
 subst x s b = sub b
