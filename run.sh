@@ -12,7 +12,7 @@ function run {
   if anyString "$*" -i; then
     debugModule=`choice "$(find Src -iname *.hs)"`
     ./genParser.sh
-    ghci $debugModule
+    cabal exec ghci -- $debugModule
     ./cleanParser.sh
   else
     ./bin/Main $noIArguments <&0

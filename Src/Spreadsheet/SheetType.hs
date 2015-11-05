@@ -1,3 +1,8 @@
+{-|
+Module      : Spreadsheet.SheetType
+Description : A Sheet datatype, that contains a grid of cells
+Stability   : experimental
+-}
 module Src.Spreadsheet.SheetType
   ( module Src.API.SheetAbstr
   , module Src.Spreadsheet.SheetType ) where
@@ -18,9 +23,8 @@ import Src.API.SheetAbstr
 
 data CellT e = CellT { text  :: String
                      , lExpr :: Maybe (e)
-                     , uFlag :: Bool -- Cell has changed, used to check if an input field needs to be refreshed
+                     , uFlag :: Bool -- Cell has changed, used to check if an input field needs to be refreshed by the frontend
                      }
-
 
 type Sheet e = Map Pos (CellT e)
 
