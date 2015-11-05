@@ -1,5 +1,7 @@
 module Src.Lambda.ExprLexer where
 
+import Prelude hiding ((*>), (<*), (<$))
+
 import ParseLib.Abstract
 import Data.Char
 import Data.Maybe
