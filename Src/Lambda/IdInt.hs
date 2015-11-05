@@ -64,7 +64,7 @@ convVar :: (Ord v) => v -> M v IdInt
 convVar v = do
   (i, m) <- get
   case M.lookup v m of
-    nOTHING -> Do
+    Nothing -> do
       let ii = IdInt i
       put (i+1, M.insert v ii m)
       return ii
