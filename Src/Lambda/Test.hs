@@ -1,3 +1,8 @@
+{-|
+Module      : Lambda.Test
+Description : test suite for the lambda calculus expressions lexer and parser
+Stability   : experimental
+-}
 module Src.Lambda.Test where
 
 import Src.Lambda.ExprParser

@@ -1,3 +1,10 @@
+{-|
+Module      : Lambda.ExprLexer
+Description : Lambda calculus lexer
+Stability   : experimental
+
+Convert raw text (:: String) to Lambda calculus tokens, that can subsequently be parsed by the Lambda.ExprParser module.
+-}
 module Src.Lambda.ExprLexer where
 
 import Prelude hiding ((*>), (<*), (<$))
@@ -25,12 +32,14 @@ data Token =
   | TCellRef (Int, Int)
   deriving (Eq, Show)
 
+-- | Lexes a lambda calculus expression
 scanExpr :: String -> Maybe [Token]
 scanExpr str = listToMaybe [p | (p, []) <- parse lTokens str]
 
 lTokens :: Parser Char [Token]
 lTokens = many (lexWhiteSpace *> lToken <* lexWhiteSpace)
 
+-- | Mappings of tokens to their corresponding @String@ counterparts
 terminals :: [(Token, String)]
 terminals =
     [ ( TParenOpen     , "("      )
@@ -66,7 +75,6 @@ lexLowerId = (:) <$> satisfy isAlpha <*> greedy (satisfy isAlphaNum)
 
 lCellRef :: Parser Char Token
 lCellRef = (\a b -> TCellRef (a,b)) <$> integer <*> (colRef2Int <$> some (satisfy isUpper))
-
 
 colRefs :: [String]
 colRefs = [1..] >>= flip replicateM ['A'..'Z']
