@@ -1,5 +1,7 @@
 module Src.Lambda.ExprLexer where
 
+import Prelude hiding ((*>), (<*), (<$))
+
 import ParseLib.Abstract
 import Data.Char
 import Data.Maybe
@@ -66,4 +68,4 @@ colRefs :: [String]
 colRefs = [1..] >>= flip replicateM ['A'..'Z']
 
 colRef2Int :: String -> Int
-colRef2Int r = fromJust $ findIndex (==r) colRefs 
+colRef2Int r = fromJust $ findIndex (==r) colRefs
