@@ -1,4 +1,12 @@
-module Src.Spreadsheet.SheetType where
+{-|
+Module      : Spreadsheet.SheetType
+Description : A Sheet datatype, that contains a grid of cells
+Stability   : experimental
+-}
+module Src.Spreadsheet.SheetType
+  ( module Src.API.SheetAbstr
+  , module Src.Spreadsheet.SheetType ) where
+
 
 import Data.Map (Map)
 import Data.Set (Set)
@@ -8,12 +16,16 @@ import Graphics.UI.Threepenny.Core
 
 import Src.Lambda.ExprParser
 import Src.Lambda.IdInt
+import Src.Lambda.Lambda
 
-data Cell = Cell { text  :: String
-                 , lExpr :: Maybe (LC IdInt)
-                 , uFlag :: Bool -- Cell has changed, used to check if an input field needs to be refreshed
-                 }
 
-type Pos = (Int, Int)
+import Src.API.SheetAbstr
 
-type Sheet = Map Pos Cell
+data CellT e = CellT { text  :: String
+                     , lExpr :: Maybe (e)
+                     , uFlag :: Bool -- Cell has changed, used to check if an input field needs to be refreshed by the frontend
+                     }
+
+type Sheet e = Map Pos (CellT e)
+
+

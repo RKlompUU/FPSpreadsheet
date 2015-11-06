@@ -1,0 +1,122 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage{fancyvrb}
+\usepackage{caption}
+
+\begin{document}
+\author{Rick Klomp\\Student number: 5540232}
+\title{Experimentation project\\Functional Programming in Spreadsheets}
+\maketitle
+\pagebreak
+
+\section{Introduction}
+All spreadsheet programs (atleast the popular ones, e.g. Excell, libre-office-calc) provide a
+domain specific language to manipulate data. These DSLs are Turing complete (source..). Thus,
+they're in principal as powerful as any other programming language.
+However, many features known from languages such as Haskell are not provided by these languages.
+Examples of these features include (but are not limited to):
+\begin{itemize}
+\item Higher order functions
+\item Lazy evaluation
+\item List comprehension
+\end{itemize}
+This has raised the question if the experience of spreadsheet programming can be improved by
+providing a cleanly designed language that provides powerful mechanisms known from functional
+programming languages.
+\\\\
+To initiate research in the area, this project has been performed to define an API that provides
+an interface for spreadsheet computations as well as to experiment with a basic application of
+the API. Results and findings of these topics are discussed in sections \ref{API} and
+\ref{API application} respectively.
+
+\section{API}
+\label{API}
+The API abstracts over four layers of spreadsheet computation functionality.
+Each layer is covered by one of the following type classes:
+\begin{itemize}
+\item Spreadsheet
+\item Cell
+\item Expr
+\item Var
+\end{itemize}
+These abstraction layers are further discussed in sections \ref{Spreadsheet abstraction} through
+\ref{Var abstraction} respectively.
+
+\subsection{Spreadsheet abstraction}
+\label{Spreadsheet abstraction}
+\begin{minipage}{\linewidth}
+\begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
+class (Var v, Expr e v, Cell c e v) => Spreadsheet s c e v | s -> c, s -> v where
+  updateEvals :: s -> s
+  getCell     :: s -> Pos -> Maybe c
+  setCell     :: s -> Pos -> c -> s
+\end{Verbatim}
+\captionof{figure}{The Spreadsheet type class.}\label{Spreadsheet type class}
+\end{minipage}
+\\\\
+The definition of the Spreadsheet type class is given in figure \ref{Spreadsheet type class}.
+This layer functions as an encapsulation over the grid of Cells. The updateEvals function
+defines the interface for initiating a complete spreadsheet evaluation.
+With getCell and setCell it provides a way to access the next layer of abstraction (i.e. the
+Cell abstraction, see section \ref{Cell abstraction}).
+
+\subsection{Cell abstraction}
+\label{Cell abstraction}
+\begin{minipage}{\linewidth}
+\begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
+class (Var v, Expr e v) => Cell c e v | c -> e, c -> v where
+  evalCell      :: c -> c
+  setGlobalVars :: c -> [(v,e)] -> c
+  parseCell     :: c -> c
+  getEval       :: c -> Maybe e
+  getText       :: c -> String
+\end{Verbatim}
+\captionof{figure}{The Cell type class.}\label{Cell type class}
+\end{minipage}
+\\\\
+Figure \ref{Cell type class} gives the definition of the Cell type class.
+The Cell abstraction enforces a state machine-like usage. Prior to calling evalCell, the Cell's
+content should succesfully have been parsed by the parseCell function and any definitions of
+global variables that the cell's expression requires during evaluation should have been supplied
+with the setGlobalVars function. Similarly, prior to calling getEval, the Cell's expression should
+succesfully have been evaluated by the evalCell function. These functions don't return information
+showing if something failed, thus the state should somehow be stored and manipulated inside the
+Cell datatype (:: c).
+
+\subsection{Expr abstraction}
+\label{Expr abstraction}
+\begin{minipage}{\linewidth}
+\begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
+class Var v => Expr e v | e -> v where
+  addGlobalVar    :: e -> v -> e -> e
+  cleanGlobalVars :: e -> e
+  evalExpr        :: e -> e
+\end{Verbatim}
+\captionof{figure}{The Expr type class.}\label{Expr type class}
+\end{minipage}
+\\\\
+In figure \ref{Expr type class} the definition of the Expr type class is given. This layer
+of abstraction defines an interface to the spreadsheet language. Alike the Cell abstraction layer,
+this layer expects a state-machine like implementation. Prior to calling the evalExpr function,
+all required global variables should have been added to the Expr datatype (:: e) using the
+addGlobalVar function.
+
+\subsection{Var abstraction}
+\label{Var abstraction}
+\begin{minipage}{\linewidth}
+\begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
+class Var v where
+\end{Verbatim}
+\captionof{figure}{The Var type class.}\label{Var type class}
+\end{minipage}
+\\\\
+Figure \ref{Var type class} gives the definition of the Var type class.
+
+\section{API application}
+\label{API application}
+
+
+\section*{Bibliography}
+Spreadsheets are turing complete: http://www.felienne.com/archives/2974
+
+\end{document}
