@@ -32,7 +32,7 @@ data LExpr v = LExpr { lExpr_ :: (LC v)
 instance Expr (LExpr String) String where
   addGlobalVar lambda@LExpr { lLets_ = vars} v definition = lambda {lLets_ = Map.insert v definition vars}
   cleanGlobalVars lambda = lambda {lLets_ = Map.empty}
-  evalExpr _ lambda@LExpr {lExpr_ = e, lLets_ = vars} = lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
+  evalExpr lambda@LExpr {lExpr_ = e, lLets_ = vars} = lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
 
 -- | Translates a @Pos@ to a @String@ representation.
 cRefPos2Var :: Pos -> String
