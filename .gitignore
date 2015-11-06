@@ -9,3 +9,8 @@ out/
 cabal.sandbox.config
 .cabal-sandbox/
 *.orig
+*.out
+Docs/final.pdf
+*.log
+*.dvi
+*.aux
