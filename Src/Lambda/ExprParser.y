@@ -44,7 +44,7 @@ lcRec : con         { $1 }
       | cVar        { $1 }
       | '(' lc ')'  { $2 }
 
-con : digit { CInt (read $1) }
+con : digit { CInt $1 }
 
 var : ident { Var $1 }
 
