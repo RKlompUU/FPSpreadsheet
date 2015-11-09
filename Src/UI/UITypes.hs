@@ -37,7 +37,7 @@ toKeyCode 39 = KeyCodeRight
 toKeyCode 40 = KeyCodeDown
 toKeyCode k  = KeyCodeSpecial k
 
--- | @toKeyCodeM@ is used as a wrapper. Threepenny has functions that
+-- | 'toKeyCodeM' is used as a wrapper. Threepenny has functions that
 -- contain (UI.KeyCode -> UI a) parameters, toKeyCodeM is simply used to
 -- conviniently wrap our own KeyCode definition around those functions.
 toKeyCodeM :: (KeyCode -> UI a) -> UI.KeyCode -> UI a
@@ -51,7 +51,7 @@ key2Dir KeyCodeRight = (0,1)
 key2Dir KeyCodeDown  = (1,-0)
 key2Dir _            = (0,0)
 
--- | @UISheet@ defines the spreadsheet type. The functions in this UI
+-- | 'UISheet' defines the spreadsheet type. The functions in this UI
 -- submodule pass a value of this datatype along in a statewise matter.
 data UISheet = UISheet { sheetCells  :: Sheet (LExpr String)
                        , sheetCursor :: Pos

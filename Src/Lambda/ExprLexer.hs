@@ -39,7 +39,7 @@ scanExpr str = listToMaybe [p | (p, []) <- parse lTokens str]
 lTokens :: Parser Char [Token]
 lTokens = many (lexWhiteSpace *> lToken <* lexWhiteSpace)
 
--- | Mappings of tokens to their corresponding @String@ counterparts
+-- | Mappings of tokens to their corresponding "String" counterparts
 terminals :: [(Token, String)]
 terminals =
     [ ( TParenOpen     , "("      )
