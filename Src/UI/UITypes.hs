@@ -3,10 +3,10 @@ Module      :
 Description :
 Stability   :
 -}
-module Src.UI.UITypes where
+module UI.UITypes where
 
-import Src.API.SheetAbstr
-import Src.Spreadsheet.Sheet
+import API.SheetAbstr
+import Spreadsheet.Sheet
 
 import Graphics.UI.Threepenny.Core
 import qualified Graphics.UI.Threepenny as UI

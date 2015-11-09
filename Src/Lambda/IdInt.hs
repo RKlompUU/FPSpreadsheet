@@ -7,11 +7,11 @@ This module supplies functions for translating an @LC String@ to an @LC IdInt@ a
 Currently, @LC String@ expressions are parsed from user written code, but the function
 that reduces an expression to its normal form can only reduce @LC IdInt@ expressions.
 -}
-module Src.Lambda.IdInt where
+module Lambda.IdInt where
 
 import qualified Data.Map as M
 import Control.Monad.State
-import Src.Lambda.ExprParser
+import Lambda.ExprParser
 
 import Debug.Trace
 

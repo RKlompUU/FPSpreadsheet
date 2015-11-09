@@ -5,18 +5,18 @@ Stability   : experimental
 
 -}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-module Src.Lambda.Lambda
-  ( module Src.Lambda.Lambda
+module Lambda.Lambda
+  ( module Lambda.Lambda
   , toIdInt, fromIdInt
   , LC(..) ) where
 
 import Data.List
-import Src.Lambda.ExprParser
-import Src.Lambda.ExprLexer
-import Src.Lambda.IdInt
+import Lambda.ExprParser
+import Lambda.ExprLexer
+import Lambda.IdInt
 import Debug.Trace
 
-import Src.API.SheetAbstr
+import API.SheetAbstr
 
 import qualified Data.Map as Map
 

@@ -1,8 +1,8 @@
-module Src.UI.UI where
+module UI.UI where
 
-import Src.Spreadsheet.Sheet
+import Spreadsheet.Sheet
 
-import Src.UI.UITypes
+import UI.UITypes
 import Graphics.UI.Threepenny.Core
 import qualified Graphics.UI.Threepenny as UI
 
@@ -13,7 +13,7 @@ import qualified Text.Blaze.Html as HTML
 import qualified Text.Blaze.Html.Renderer.String as HTML
 import qualified Data.Map as Map
 
-import Src.Lambda.Lambda
+import Lambda.Lambda
 
 import Debug.Trace
 
@@ -152,7 +152,7 @@ scrollSheet ctxSh dPos
 
 cellMod :: String -> Pos -> UISheet -> UISheet
 cellMod cCnt cPos sh
-  = let c'     = (getSheetCell cPos (sheetCells sh)) { Src.Spreadsheet.Sheet.text = cCnt }
+  = let c'     = (getSheetCell cPos (sheetCells sh)) { Spreadsheet.Sheet.text = cCnt }
         cs'    = Map.insert cPos c' (sheetCells sh)
     in sh { sheetCells = updateEvals cs' }
 
@@ -171,7 +171,7 @@ printText ctxSh cPos
   case isInBox inPos (uiSheetInSize sh) of
     Nothing -> do
       case Map.lookup cPos (sheetCells sh) of
-        Just c -> element (getSheetIn inPos sh) # set UI.value (Src.Spreadsheet.Sheet.text c) >> return ()
+        Just c -> element (getSheetIn inPos sh) # set UI.value (Spreadsheet.Sheet.text c) >> return ()
         _ -> return ()
     _ -> return ()
 

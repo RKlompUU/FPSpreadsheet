@@ -3,9 +3,9 @@ Module      : Spreadsheet.SheetType
 Description : A Sheet datatype, that contains a grid of cells
 Stability   : experimental
 -}
-module Src.Spreadsheet.SheetType
-  ( module Src.API.SheetAbstr
-  , module Src.Spreadsheet.SheetType ) where
+module Spreadsheet.SheetType
+  ( module API.SheetAbstr
+  , module Spreadsheet.SheetType ) where
 
 
 import Data.Map (Map)
@@ -14,12 +14,12 @@ import qualified Data.Map as Map
 
 import Graphics.UI.Threepenny.Core
 
-import Src.Lambda.ExprParser
-import Src.Lambda.IdInt
-import Src.Lambda.Lambda
+import Lambda.ExprParser
+import Lambda.IdInt
+import Lambda.Lambda
 
 
-import Src.API.SheetAbstr
+import API.SheetAbstr
 
 data CellT e = CellT { text  :: String
                      , lExpr :: Maybe (e)

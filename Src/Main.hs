@@ -9,15 +9,15 @@ module Main where
 
 import Graphics.UI.Threepenny.Core
 
-import Src.Lambda.Lambda
-import Src.UI.UI
+import Lambda.Lambda
+import UI.UI
 
 import Data.Maybe
 import System.IO
 import System.Environment
 import Control.Monad
 
-import Src.Lambda.Test
+import Lambda.Test
 
 {-----------------------------------------------------------------------------
     Main

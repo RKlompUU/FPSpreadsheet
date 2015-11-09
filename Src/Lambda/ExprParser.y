@@ -1,7 +1,7 @@
 {
-module Src.Lambda.ExprParser where
+module Lambda.ExprParser where
 
-import Src.Lambda.ExprLexer
+import Lambda.ExprLexer
 
 import Data.List
 import Data.Char

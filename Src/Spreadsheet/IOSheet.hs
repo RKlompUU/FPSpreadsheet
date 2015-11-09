@@ -3,10 +3,10 @@ Module      : SpreadSheet.IOSheet
 Description : Saving and opening spreadsheets (from disk, or some other destination/source)
 Stability   : unfinished functions
 -}
-module Src.Spreadsheet.IOSheet where
+module Spreadsheet.IOSheet where
 
-import Src.Spreadsheet.SheetType
-import Src.Spreadsheet.SheetParser
+import Spreadsheet.SheetType
+import Spreadsheet.SheetParser
 
 -- | Not implemented yet: Writes a spreadsheet to disk
 writeSheet :: Sheet a -> IO ()

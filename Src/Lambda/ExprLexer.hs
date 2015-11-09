@@ -5,7 +5,7 @@ Stability   : experimental
 
 Convert raw text (:: String) to Lambda calculus tokens, that can subsequently be parsed by the Lambda.ExprParser module.
 -}
-module Src.Lambda.ExprLexer where
+module Lambda.ExprLexer where
 
 import Prelude hiding ((*>), (<*), (<$))
 
