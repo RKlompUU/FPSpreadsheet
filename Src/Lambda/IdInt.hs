@@ -52,6 +52,7 @@ unchurchInt (Lam _ e) = CInt $ countDepth e
   where countDepth (Lam _ e') = countDepth e'
         countDepth (App _ e') = 1 + countDepth e'
         countDepth _ = 0
+unchurchInt e = error ("Cannot unchurch: " ++ show e)
 
 -- | 'unchurchList' translates a lambda expression that represents a church
 -- list to a list. Note that this function is not safe, if an expression is

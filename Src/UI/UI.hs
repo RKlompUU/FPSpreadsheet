@@ -3,7 +3,7 @@ module UI.UI where
 import Spreadsheet.Sheet
 
 import UI.UITypes
-import Graphics.UI.Threepenny.Core
+import qualified Graphics.UI.Threepenny.Core as UI
 import qualified Graphics.UI.Threepenny as UI
 
 
@@ -20,25 +20,25 @@ import Debug.Trace
 
 type SheetTy = Sheet (LExpr String)
 
-getHtml :: JSFunction String
-getHtml = ffi "document.documentElement.innerHTML"
+getHtml :: UI.JSFunction String
+getHtml = UI.ffi "document.documentElement.innerHTML"
 
 -- | Focus an element.
-isFocused :: Element -> UI Bool
+isFocused :: UI.Element -> UI.UI Bool
 isFocused elm
   = do
-  retVal <- callFunction $ ffi "$(%1).is(':focus')" elm
+  retVal <- UI.callFunction $ UI.ffi "$(%1).is(':focus')" elm
   return $ retVal == "true"
 
-initUISheet :: UI UISheet
+initUISheet :: UI.UI UISheet
 initUISheet = do
   let cols = 7
       rows = 12
       baseSheet = initSheet
-  cells <- replicateM (rows*cols) (UI.input # set UI.size "14")
+  cells <- replicateM (rows*cols) (UI.input UI.# UI.set UI.size "14")
   shells <- replicateM (rows*cols) UI.button
-  rowNrs <- replicateM rows (UI.body # set UI.text "0")
-  colNrs <- replicateM cols (UI.body # set UI.text "0")
+  rowNrs <- replicateM rows (UI.body UI.# UI.set UI.text "0")
+  colNrs <- replicateM cols (UI.body UI.# UI.set UI.text "0")
   let shelledCells = zip shells cells
       cells' = map (\(rI,r) -> zip [(rI,cI) | cI <- [0..cols]] r)
              $ zip [0..rows]
@@ -46,7 +46,7 @@ initUISheet = do
   return $ UISheet baseSheet (0,0) (0,0) cells' colNrs rowNrs
 
 
-setup :: Window -> UI ()
+setup :: UI.Window -> UI.UI ()
 setup rootWindow
   = do
   sheet <- initUISheet
@@ -54,40 +54,40 @@ setup rootWindow
   ctxSh <- liftIO $ atomically $ newTVar sheet
   offsetSheet ctxSh (0,0)
 
-  debugField <- UI.paragraph # set UI.text "Test"
-  return rootWindow # set UI.title "Hello World!"
+  debugField <- UI.paragraph UI.# UI.set UI.text "Test"
+  return rootWindow UI.# UI.set UI.title "Hello World!"
 
   rootWindowBody <- UI.getBody rootWindow
-  on UI.keydown rootWindowBody (toKeyCodeM (rootKeyHandler ctxSh debugField))
+  UI.on UI.keydown rootWindowBody (toKeyCodeM (rootKeyHandler ctxSh debugField))
 
-  mapM_ (\cell -> on UI.keydown (grabCell cell) (toKeyCodeM $ sheetMod ctxSh rootWindow debugField cell))
+  mapM_ (\cell -> UI.on UI.keydown (grabCell cell) (toKeyCodeM $ sheetMod ctxSh rootWindow debugField cell))
         (concat $ sheetIns sheet)
 
-  mapM_ (\cell -> on UI.keydown (grabShell cell) (toKeyCodeM $ shellKeyHandler debugField ctxSh cell))
+  mapM_ (\cell -> UI.on UI.keydown (grabShell cell) (toKeyCodeM $ shellKeyHandler debugField ctxSh cell))
         (concat $ sheetIns sheet)
 
 
-  getBody rootWindow #+
-    [  grid $ (:) (UI.body : map element (sheetColNs sheet))
-            $ map (\(shRowNr, shRow) -> element shRowNr : shRow)
+  UI.getBody rootWindow UI.#+
+    [  UI.grid $ (:) (UI.body : map UI.element (sheetColNs sheet))
+            $ map (\(shRowNr, shRow) -> UI.element shRowNr : shRow)
             $ zip (sheetRowNs sheet)
             $ (map . map)
-              (\(_,(shell,cell)) -> element shell #+ [element cell])
+              (\(_,(shell,cell)) -> UI.element shell UI.#+ [UI.element cell])
               (sheetIns sheet)
-    , element debugField ]
+    , UI.element debugField ]
 
   UI.setFocus (grabShell $ (head . head) (sheetIns sheet))
 
   return ()
 
-focusSheetInShell :: TVar UISheet -> UI ()
+focusSheetInShell :: TVar UISheet -> UI.UI ()
 focusSheetInShell ctxSh =
   do
     sh <- liftIO $ atomically $ readTVar ctxSh
     let focusIn = sheetCursor sh
     UI.setFocus (grabShell (sheetIns sh !! fst focusIn !! snd focusIn))
 
-moveFocus :: TVar UISheet -> Pos -> UI ()
+moveFocus :: TVar UISheet -> Pos -> UI.UI ()
 moveFocus ctxSh dPos
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
@@ -99,52 +99,52 @@ moveFocus ctxSh dPos
     Nothing -> liftIO (atomically $ writeTVar ctxSh (sh {sheetCursor = dPos `posAdd` sheetCursor sh}))
                >> focusSheetInShell ctxSh
 
-getAbsoluteCPos :: TVar UISheet -> Pos -> UI Pos
+getAbsoluteCPos :: TVar UISheet -> Pos -> UI.UI Pos
 getAbsoluteCPos ctxSh relativePos
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
   return $ relativePos `posAdd` sheetOffset sh
 
 -- Unsafe operation, will crash if an invalid position is given
-getSheetIn :: Pos -> UISheet -> Element
+getSheetIn :: Pos -> UISheet -> UI.Element
 getSheetIn (r,c) sh
   = grabCell $ sheetIns sh !! r !! c
 
-grabShell :: (Pos, (Element, Element)) -> Element
+grabShell :: (Pos, (UI.Element, UI.Element)) -> UI.Element
 grabShell = fst . snd
-grabCell :: (Pos, (Element, Element)) -> Element
+grabCell :: (Pos, (UI.Element, UI.Element)) -> UI.Element
 grabCell = snd . snd
-grabPos :: (Pos, (Element, Element)) -> Pos
+grabPos :: (Pos, (UI.Element, UI.Element)) -> Pos
 grabPos = fst
 
-getUISheet :: TVar UISheet -> UI UISheet
+getUISheet :: TVar UISheet -> UI.UI UISheet
 getUISheet ctxSh = liftIO $ atomically $ readTVar ctxSh
 
-cells2Ins :: TVar UISheet -> UI ()
+cells2Ins :: TVar UISheet -> UI.UI ()
 cells2Ins ctxSh
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
   mapM_ (\(p, (_,elm)) -> cell2In (sheetCells sh) (p `posAdd` sheetOffset sh) elm) (concat $ sheetIns sh)
   --liftIO $ atomically $ writeTVar ctxSh (sh {sheetIns = })
 
-cell2In :: SheetTy -> Pos -> Element -> UI ()
+cell2In :: SheetTy -> Pos -> UI.Element -> UI.UI ()
 cell2In cs pos elm
   = do
   let (CellT text _ _) = Map.findWithDefault emptyCell pos cs
-  oldVal <- get UI.value elm
-  unless (text == oldVal) $ element elm # set UI.value text >> return ()
+  oldVal <- UI.get UI.value elm
+  unless (text == oldVal) $ UI.element elm UI.# UI.set UI.value text >> return ()
 
-offsetSheet :: TVar UISheet -> Pos -> UI ()
+offsetSheet :: TVar UISheet -> Pos -> UI.UI ()
 offsetSheet ctxSh pos
   = do
   sh <- getUISheet ctxSh
   liftIO $ atomically $ writeTVar ctxSh (sh {sheetOffset = pos})
-  mapM_ (\(elm,rowNr) -> element elm # set UI.text (show rowNr)) (zip (sheetRowNs sh) [fst pos..])
-  mapM_ (\(elm,colNr) -> element elm # set UI.text (show colNr)) (zip (sheetColNs sh) [snd pos..])
+  mapM_ (\(elm,rowNr) -> UI.element elm UI.# UI.set UI.text (show rowNr)) (zip (sheetRowNs sh) [fst pos..])
+  mapM_ (\(elm,colNr) -> UI.element elm UI.# UI.set UI.text (show colNr)) (zip (sheetColNs sh) [snd pos..])
   cells2Ins ctxSh
   return ()
 
-scrollSheet :: TVar UISheet -> Pos -> UI ()
+scrollSheet :: TVar UISheet -> Pos -> UI.UI ()
 scrollSheet ctxSh dPos
   = do
   sh <- liftIO $ atomically $ readTVar ctxSh
@@ -154,7 +154,7 @@ cellMod :: String -> Pos -> UISheet -> UISheet
 cellMod cCnt cPos sh
   = let c'     = (getSheetCell cPos (sheetCells sh)) { Spreadsheet.Sheet.text = cCnt }
         cs'    = Map.insert cPos c' (sheetCells sh)
-    in sh { sheetCells = updateEvals cs' }
+    in sh { sheetCells = snd $ runState updateEvals cs' }
 
 uiSheetInSize :: UISheet -> (Pos,Pos)
 uiSheetInSize sh =
@@ -163,7 +163,7 @@ uiSheetInSize sh =
   in ((0,0),(rs,cs))
 
 
-printText :: TVar UISheet -> Pos -> UI ()
+printText :: TVar UISheet -> Pos -> UI.UI ()
 printText ctxSh cPos
   = do
   sh <- getUISheet ctxSh
@@ -171,11 +171,11 @@ printText ctxSh cPos
   case isInBox inPos (uiSheetInSize sh) of
     Nothing -> do
       case Map.lookup cPos (sheetCells sh) of
-        Just c -> element (getSheetIn inPos sh) # set UI.value (Spreadsheet.Sheet.text c) >> return ()
+        Just c -> UI.element (getSheetIn inPos sh) UI.# UI.set UI.value (Spreadsheet.Sheet.text c) >> return ()
         _ -> return ()
     _ -> return ()
 
-printEval :: TVar UISheet -> Pos -> UI ()
+printEval :: TVar UISheet -> Pos -> UI.UI ()
 printEval ctxSh cPos
   = do
   sh <- getUISheet ctxSh
@@ -183,18 +183,18 @@ printEval ctxSh cPos
   case isInBox inPos (uiSheetInSize sh) of
     Nothing -> do
       case Map.lookup cPos (sheetCells sh) >>= lExpr of
-        Just (LExpr e _) -> element (getSheetIn inPos sh) # set UI.value (show e) >> return ()
+        Just (LExpr e _) -> UI.element (getSheetIn inPos sh) UI.# UI.set UI.value (show e) >> return ()
         _ -> return ()
     _ -> return ()
 
 -- sheet modification
-sheetMod :: TVar UISheet -> Window -> Element -> (Pos, (Element,Element)) -> KeyCode -> UI ()
+sheetMod :: TVar UISheet -> UI.Window -> UI.Element -> (Pos, (UI.Element,UI.Element)) -> KeyCode -> UI.UI ()
 --sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell))
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEnter
   = do
   -- Save edited content in the spreadsheet, and exit input focus
   sh <- trace "sheetMod" getUISheet ctxSh
-  cCnt <- get UI.value (getSheetIn inPos sh)
+  cCnt <- UI.get UI.value (getSheetIn inPos sh)
   cPos <- getAbsoluteCPos ctxSh inPos
   let sh' = cellMod cCnt cPos sh
 
@@ -213,11 +213,11 @@ sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) KeyCodeEsc
   printEval ctxSh cPos
 sheetMod ctxSh rootWindow debugField (inPos,(inShell,inCell)) k
   = do
-  element debugField # set UI.text (show k)
+  UI.element debugField UI.# UI.set UI.text (show k)
   --dumpHtml rootWindow debugField
   return ()
 
-shellKeyHandler :: Element -> TVar UISheet -> (Pos, (Element,Element)) -> KeyCode -> UI ()
+shellKeyHandler :: UI.Element -> TVar UISheet -> (Pos, (UI.Element,UI.Element)) -> KeyCode -> UI.UI ()
 shellKeyHandler _ ctxSh (cPos, (cShell,cCell)) KeyCodeEnter
   = do
   cellHasFocus <- isFocused cCell
@@ -230,17 +230,17 @@ shellKeyHandler debugField ctxSh (cPos, (cShell,cCell)) k
       cellHasFocus <- isFocused cCell
       unless cellHasFocus $ moveFocus ctxSh (key2Dir k)
   | otherwise
-      = element debugField # set UI.text (show k) >> return ()
+      = UI.element debugField UI.# UI.set UI.text (show k) >> return ()
 
-rootKeyHandler :: TVar UISheet -> Element -> KeyCode -> UI ()
+rootKeyHandler :: TVar UISheet -> UI.Element -> KeyCode -> UI.UI ()
 rootKeyHandler ctxSh debugField _ = return ()
 
-dumpHtml :: Window -> Element -> UI ()
+dumpHtml :: UI.Window -> UI.Element -> UI.UI ()
 dumpHtml rootWindow debugField
   = do
-  htmlCode <- callFunction getHtml
+  htmlCode <- UI.callFunction getHtml
   -- This prettyfi stuff isn't actually working :/
   let prettyHtmlCode = HTML.renderHtml
                      $ HTML.toHtml htmlCode
-  element debugField # set UI.text "" -- htmlCode
+  UI.element debugField UI.# UI.set UI.text "" -- htmlCode
   return ()
