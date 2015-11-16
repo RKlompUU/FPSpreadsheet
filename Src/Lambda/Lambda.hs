@@ -22,17 +22,18 @@ import qualified Data.Map as Map
 
 instance Var String where
 
--- | The API requires a way to store global variables but that can also at
--- some point be removed. 'LExpr' extends the 'LC' type with a storing
--- mechanism for global variables.
-data LExpr v = LExpr { lExpr_ :: (LC v)
-                     , lLets_ :: (Map.Map v (LExpr v)) }
-  deriving Show
-
-instance Expr (LExpr String) String where
-  addGlobalVar lambda@LExpr { lLets_ = vars} v definition = lambda {lLets_ = Map.insert v definition vars}
-  cleanGlobalVars lambda = lambda {lLets_ = Map.empty}
-  evalExpr lambda@LExpr {lExpr_ = e, lLets_ = vars} = lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
+instance Expr (LC String) String where
+  addGlobalVar definition v =
+    do
+      env <- get
+      let env' = Map.insert v definition env
+      put env'
+  cleanGlobalVars = put Map.empty
+  evalExpr e =
+    do
+      env <- get
+      return (fromIdInt $ nf $ toIdInt $ addCellRefs (Map.assocs env) e)
+-- lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
 
 -- | Translates a 'Pos' reference to a 'String' reference representation.
 cRefPos2Var :: Pos -> String

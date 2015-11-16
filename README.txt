@@ -9,7 +9,7 @@ Email: r.klomp@students.uu.nl
 
 -- Run the following if using ghc >= 7.10, otherwise this step may be skipped
 > cd to the root directory of this project
-  cabal install uu-tc-2009.2.2
+  cabal install ./uu-tc-2009.2.2
 
 -- Run the following, regardless of the ghc version you're using
 > cd to the root directory of this project
