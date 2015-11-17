@@ -54,8 +54,8 @@ terminals =
 
 lToken :: Parser Char Token
 lToken =  lTerminal
-      <|> lVar
       <|> lCellRef
+      <|> lVar
       <|> lInt
 
 lTerminal :: Parser Char Token

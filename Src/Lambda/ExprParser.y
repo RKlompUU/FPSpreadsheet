@@ -116,6 +116,7 @@ quotelessShow = filter (/= '\"') . show
 ppLC :: (Show v) => Int -> LC v -> Doc
 ppLC _ (CInt i) = text $ show i
 ppLC _ (CList l) = text "[" <> (hcat $ intersperse (text ",") $ map (ppLC 0) l) <> text "]"
+ppLC _ (CVar pos) = text $ show pos
 ppLC _ (Var v) = text $ quotelessShow v
 ppLC p (Lam v e) = pparens (p>0) $ text ("\\" ++ quotelessShow v ++ ".") <> ppLC 0 e
 ppLC p (App f a) = pparens (p>1) $ ppLC 1 f <+> ppLC 2 a

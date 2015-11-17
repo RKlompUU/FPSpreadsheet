@@ -37,7 +37,7 @@ instance Expr (LC String) String where
 
 -- | Translates a 'Pos' reference to a 'String' reference representation.
 cRefPos2Var :: Pos -> String
-cRefPos2Var (r,c) = show r ++ colRefs !! c
+cRefPos2Var (r,c) = trace ("Getting col: " ++ show c) show r ++ colRefs !! c
 
 -- | 'parseExpr' combines the lexer and parser stages. If both succeed it
 -- returns an 'LC String'.

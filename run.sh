@@ -2,6 +2,8 @@
 
 . BashStd.sh
 
+exec 2>&1
+
 function compilationFailed {
   return $(confirm 'Compilation failed!
 Want to run the old binary?')
@@ -11,9 +13,7 @@ function run {
   noIArguments=$(filterString "$*" -i)
   if anyString "$*" -i; then
     debugModule=`choice "$(find Src -iname *.hs)"`
-    ./genParser.sh
     cabal exec ghci -- $debugModule
-    ./cleanParser.sh
   else
     ./bin/Main $noIArguments <&0
   fi

@@ -53,7 +53,7 @@ key2Dir _            = (0,0)
 
 -- | 'UISheet' defines the spreadsheet type. The functions in this UI
 -- submodule pass a value of this datatype along in a statewise matter.
-data UISheet = UISheet { sheetCells  :: Sheet (LExpr String)
+data UISheet = UISheet { sheetCells  :: Sheet (LC String)
                        , sheetCursor :: Pos
                        , sheetOffset :: Pos
                        , sheetIns    :: [[(Pos, (Element, Element))]]

@@ -18,7 +18,7 @@ import Lambda.Lambda
 import Debug.Trace
 
 
-type SheetTy = Sheet (LExpr String)
+type SheetTy = Sheet (LC String)
 
 getHtml :: UI.JSFunction String
 getHtml = UI.ffi "document.documentElement.innerHTML"
@@ -183,7 +183,7 @@ printEval ctxSh cPos
   case isInBox inPos (uiSheetInSize sh) of
     Nothing -> do
       case Map.lookup cPos (sheetCells sh) >>= lExpr of
-        Just (LExpr e _) -> UI.element (getSheetIn inPos sh) UI.# UI.set UI.value (show e) >> return ()
+        Just e -> UI.element (getSheetIn inPos sh) UI.# UI.set UI.value (show e) >> return ()
         _ -> return ()
     _ -> return ()
 
