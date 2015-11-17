@@ -16,6 +16,8 @@ import Lambda.ExprLexer
 import Lambda.IdInt
 import Debug.Trace
 
+import Control.Monad.Reader
+
 import API.SheetAbstr
 
 import qualified Data.Map as Map
@@ -23,15 +25,9 @@ import qualified Data.Map as Map
 instance Var String where
 
 instance Expr (LC String) String where
-  addGlobalVar definition v =
-    do
-      env <- get
-      let env' = Map.insert v definition env
-      put env'
-  cleanGlobalVars = put Map.empty
   evalExpr e =
     do
-      env <- get
+      env <- ask
       return (fromIdInt $ nf $ toIdInt $ addCellRefs (Map.assocs env) e)
 -- lambda {lExpr_ = fromIdInt $ nf $ toIdInt $ addCellRefs (map (\(v,l) -> (v,lExpr_ l)) $ Map.assocs vars) e}
 
