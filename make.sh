@@ -33,7 +33,6 @@ enterDir() {
 }
 
 
-./genParser.sh
 
 enterDir hi build Src
 enterDir o  build Src
