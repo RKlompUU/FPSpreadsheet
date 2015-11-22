@@ -24,7 +24,7 @@ import qualified Data.Map as Map
 
 instance Var String where
 
-instance Expr (LC String) String where
+instance Expr (LC String) String (Reader (Env String (LC String))) where
   evalExpr e =
     do
       env <- ask
