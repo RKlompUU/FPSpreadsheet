@@ -1,5 +1,4 @@
 #!/bin/sh
 
-latex final.tex
-dvipdf final.dvi final.pdf
+pdflatex final.tex
 evince final.pdf &

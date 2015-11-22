@@ -2,6 +2,8 @@
 
 \usepackage{fancyvrb}
 \usepackage{caption}
+\usepackage{float}
+\usepackage{graphicx}
 \usepackage{csquotes}
 
 \begin{document}
@@ -11,7 +13,7 @@
 \pagebreak
 
 \section{Introduction}
-Popular spreadsheet programs (e.g. Excell, libre-office-calc) provide a
+Popular spreadsheet programs (e.g. Excell, LibreOffice) provide a
 domain specific language to manipulate data. These DSLs are Turing complete (source..). Thus,
 they're in principal as powerful as any other programming language.
 However, many features known from languages such as Haskell are not provided by these languages.
@@ -41,16 +43,19 @@ Each layer is covered by one of the following type classes:
 \item Var
 \end{itemize}
 These abstraction layers are further discussed in sections \ref{Spreadsheet abstraction} through
-\ref{Var abstraction} respectively.
+\ref{Var abstraction} respectively. Furthermore, section \ref{Annotated text} discusses a feature
+considering visually highlighting references that is present in popular spreadsheet programs,
+but is probably not implementable in a sensible way using the current API.
 
 \subsection{Spreadsheet abstraction}
 \label{Spreadsheet abstraction}
 \begin{minipage}{\linewidth}
 \begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
-class (Var v, Expr e v, Cell c e v) => Spreadsheet s c e v | s -> c, s -> v where
-  updateEvals :: s -> s
-  getCell     :: s -> Pos -> Maybe c
-  setCell     :: s -> Pos -> c -> s
+class (MonadState s m, Var v, Expr e v rm, Cell c e v) =>
+          Spreadsheet s c e v m rm | s -> c, s -> v, s -> m where
+  updateEvals :: m ()
+  getCell     :: Pos -> m (Maybe c)
+  setCell     :: Pos -> c -> m ()
 \end{Verbatim}
 \captionof{figure}{The Spreadsheet type class.}\label{Spreadsheet type class}
 \end{minipage}
@@ -59,15 +64,16 @@ The definition of the Spreadsheet type class is given in figure \ref{Spreadsheet
 This layer functions as an encapsulation over the grid of Cells. The updateEvals function
 defines the interface for initiating a complete spreadsheet evaluation.
 With getCell and setCell it provides a way to access the next layer of abstraction (i.e. the
-Cell abstraction, see section \ref{Cell abstraction}).
+Cell abstraction, see section \ref{Cell abstraction}). All functions depend on the state of the
+spreadsheet, thus they're run in a MonadState environment.
 
 \subsection{Cell abstraction}
 \label{Cell abstraction}
 \begin{minipage}{\linewidth}
 \begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
-class (Var v, Expr e v) => Cell c e v | c -> e, c -> v where
-  evalCell      :: c -> c
-  setGlobalVars :: c -> [(v,e)] -> c
+class (MonadReader (Map v e) m, Var v, Expr e v) =>
+          Cell c e v m | c -> e, c -> v, v -> m, e -> m where
+  evalCell      :: c -> m c
   parseCell     :: c -> c
   getEval       :: c -> Maybe e
   getText       :: c -> String
@@ -77,30 +83,29 @@ class (Var v, Expr e v) => Cell c e v | c -> e, c -> v where
 \\\\
 Figure \ref{Cell type class} gives the definition of the Cell type class.
 The Cell abstraction enforces a state machine-like usage. Prior to calling evalCell, the Cell's
-content should succesfully have been parsed by the parseCell function and any definitions of
-global variables that the cell's expression requires during evaluation should have been supplied
-with the setGlobalVars function. Similarly, prior to calling getEval, the Cell's expression should
+content should succesfully have been parsed by the parseCell function. Any definitions of
+global variables that the cell's expression requires during evaluation should be supplied through
+the MonadReader environment. Similarly, prior to calling getEval, the Cell's expression should
 succesfully have been evaluated by the evalCell function. These functions don't return information
 showing if something failed, thus the state should somehow be stored and manipulated inside the
-Cell datatype (:: c).
+Cell datatype (:: c). It might be useful to refine the types of these functions to reflect the
+state behaviour as well.
 
 \subsection{Expr abstraction}
 \label{Expr abstraction}
 \begin{minipage}{\linewidth}
 \begin{Verbatim}[numbers=left,stepnumber=1,numbersep=5pt]
-class Var v => Expr e v | e -> v where
-  addGlobalVar    :: e -> v -> e -> e
-  cleanGlobalVars :: e -> e
-  evalExpr        :: e -> e
+class (MonadReader (Map v e) m, Var v) =>
+          Expr e v m | e -> v, v -> m, e -> m where
+  evalExpr        :: e -> m e
 \end{Verbatim}
 \captionof{figure}{The Expr type class.}\label{Expr type class}
 \end{minipage}
 \\\\
 In figure \ref{Expr type class} the definition of the Expr type class is given. This layer
-of abstraction defines an interface to the spreadsheet language. Alike the Cell abstraction layer,
-this layer expects a state-machine like implementation. Prior to calling the evalExpr function,
-all required global variables should have been added to the Expr datatype (:: e) using the
-addGlobalVar function.
+of abstraction defines an interface to the spreadsheet language. All global variables that are
+required for evaluating an expression should be supplied through the MonadReader instance.
+It might be useful to refine the types of this function to reflect the state behaviour as well.
 
 \subsection{Var abstraction}
 \label{Var abstraction}
@@ -112,7 +117,25 @@ class Var v where
 \end{minipage}
 \\\\
 Figure \ref{Var type class} gives the definition of the Var type class.
-This layer
+This layer is currently purely used to allow for different kind of variable encodings within
+languages. Perhaps this part of the API should be extended with functions once some kind of
+annotated text mechanism has been added (see section \ref{Annotated text}).¬
+
+\subsection{Annotated text}
+\label{Annotated text}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{referenceHighlighting.png}
+\caption{Visual highlighting of references in LibreOffice.}
+\label{Visual highlighting references}
+\end{figure}
+Currently, the API probably doesn't provide enough flexibility at some places to allow for adding
+features in a sensible way such as visually highlighting references (see figure \ref{Visual highlighting references}).
+Information stored at the higher layers of the API (e.g. the state of the spreadsheet) isn't
+by default available at lower layers of the API (e.g. in the evalExpr function).
+It would most likely be wise to change the API in such a way that all information is provided
+through a single MonadState instance, and that all functions of the API run in this monadic
+environment.
 
 \section{API application}
 \label{API application}
@@ -124,16 +147,18 @@ The API abstracts over the backend matters that stay constant regardless of the 
 It seems that some of the frontend matters can be abstracted over as well. In section
 \ref{Frontend abstraction} a mechanism is discussed that can probably be abstracted over.
 \\\\
-There are arguably other issues with popular spreadsheet programs. To demonstrate that the API
-seems to encapsulate the spreadsheet backend paradigm correctly, two of these issues are further
-discussed and how they might be solved using the current API in section \ref{Spreadsheet miscellaneous issues}.
+There are arguably issues with popular spreadsheet programs considering other areas than the
+expresssions language. These are briefly discussed in section \ref{Spreadsheet miscellaneous issues}.
 
 \subsection{Experimentation API application}
 \label{Experimentation API application}
-The expression language that is provided is Lambda calculus extended with two small features: back and forth
-computation between Church numerals and natural numbers notation as well as between Church lists
-and list notation. All technical challenges have been solved in naive ways. Nevertheless, the
-implementation served its purpose.
+The expression language that is provided is Lambda calculus extended with three small features:
+\begin{itemize}
+\item Back and forth computation between Church numerals and Haskell integer notation
+\item Back and forth computation between Church lists and Haskell list notation
+\item Cell reference variables (e.g. 1A, 5B)
+\end{itemize}
+All technical challenges have been solved in naive ways.
 
 \subsection{Frontend abstraction}
 \label{Frontend abstraction}
@@ -153,12 +178,14 @@ is the awkardness of assigning meaningful names to cells and blocks of cells.
 \end{displayquote}
 A solution for both of these issues might be to add a secondary environment to the spreadsheet program
 wherein regular code can be written. For example, toplevel definitions could behave like global
-variables. This is something that the current API should be able to allow, toplevel definitions
-can be added to expressions prior to evaluation through the setGlobalVars function of the
-Cell type class (figure \ref{Cell type class}).
+variables, and can subsequently be referenced to in cell expressions.
 
-
-
+\section{Conclusion}
+An API has been defined that provides an abstraction over spreadsheet computation functionality.
+It most likely needs to be refined to allow some spreadsheet features to be defined in
+sensible ways.
+\\\\
+Furthermore, the problem area in general has been researched.
 
 \section*{Bibliography}
 Spreadsheets are turing complete: http://www.felienne.com/archives/2974
