@@ -12,8 +12,8 @@ Want to run the old binary?')
 function run {
   noIArguments=$(filterString "$*" -i)
   if anyString "$*" -i; then
-    debugModule=`choice "$(find Src -iname *.hs)"`
-    cabal exec ghci -- $debugModule
+    debugModule=`choice "$(find Src -iname "*.hs")"`
+    cabal exec ghci -- -iSrc $debugModule
   else
     ./bin/Main $noIArguments <&0
   fi

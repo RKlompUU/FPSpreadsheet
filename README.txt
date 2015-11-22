@@ -7,8 +7,10 @@ Email: r.klomp@students.uu.nl
 --------------------------------------------------------------------------------
 -- Compilation
 
--- Run the following if using ghc >= 7.10, otherwise this step may be skipped
 > cd to the root directory of this project
+  cabal sandbox init
+
+-- Run the following if using ghc >= 7.10, otherwise this step may be skipped
   cabal install ./uu-tc-2009.2.2
 
 -- Run the following, regardless of the ghc version you're using
@@ -37,7 +39,7 @@ Email: r.klomp@students.uu.nl
 -- Additional info
 
 There are other means of compilation using the run.sh and make.sh scripts in the
-root directory of this project. For the most part running 'cabal run' is better.
+root directory of this project. For the most part running 'cabal run' suffices.
 however, the run.sh script has its uses when debugging the code. It has 2 flags
 that won't be passed through to the executable:
 -m (run make.sh prior to running, if it fails then it asks if it should run the
