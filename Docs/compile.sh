@@ -1,4 +1,4 @@
 #!/bin/sh
 
-pdflatex final.tex
-evince final.pdf &
+pdflatex FPSpreadsheet.tex
+evince FPSpreadsheet.pdf &
