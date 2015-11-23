@@ -14,7 +14,7 @@
 
 \section{Introduction}
 Popular spreadsheet programs (e.g. Excell, LibreOffice) provide a
-domain specific language to manipulate data. These DSLs are Turing complete (source..). Thus,
+domain specific language to manipulate data. These DSLs are Turing complete (Hermans, 2013). Thus,
 they're in principal as powerful as any other programming language.
 However, many features known from languages such as Haskell are not provided by these languages.
 Examples of these features include (but are not limited to):
@@ -30,7 +30,22 @@ programming languages.
 To initiate research in the area, this project has been performed to define an API that provides
 an interface for spreadsheet computations as well as to experiment with a basic application of
 the API. Results and findings of these topics are discussed in sections \ref{API} and
-\ref{API application} respectively.
+\ref{API application} respectively. Section \ref{Prior work} presents some related prior research
+that has been performed.
+
+\section{Prior work}
+\label{Prior work}
+There has been some research performed on the subject before.
+\\\\
+Haxcel has resulted from a MSc thesis project:
+\begin{displayquote}[Lisper, 2005]
+Haxcel is a spreadsheet-like interface to Haskell, where declerations can be edited and values of
+different variables monitord as declarations are updated.
+\end{displayquote}
+Unfortunately, this project doesn't seem to have been succeeded.
+\\\\
+Furthermore, Wakeling has performed research on embedding functional languages such as Haskell
+inside a standard spreadsheet such as Excel (Wakeling, 2007).
 
 \section{API}
 \label{API}
@@ -185,11 +200,21 @@ An API has been defined that provides an abstraction over spreadsheet computatio
 It most likely needs to be refined to allow some spreadsheet features to be defined in
 sensible ways.
 \\\\
-Furthermore, the problem area in general has been researched.
+Furthermore, the problem area in general has been researched. There has been some prior research
+performed. However, no extensive research has been performed, which in this case is probably
+needed in order to get a clear picture of the benifits and cost of functional programming spreadsheets.
 
 \section*{Bibliography}
-Spreadsheets are turing complete: http://www.felienne.com/archives/2974
+Halbert, D. (2012, November). \textit{Let's fix spreadsheets}.
+
+Retrieved from http://www.lambda-the-ultimate.org/node/4626
 \\\\
-Halbert todo ..: todo
+Hermans, F. (2013, September). Excel Turing Machine [Web log post].
+
+Retrieved from http://www.felienne.com/archives/2974
+\\\\
+Wakeling, D. (2007). Spreadsheet functional programming.
+
+Journal of Functional Programming, 17, pp 131-143
 
 \end{document}
