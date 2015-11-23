@@ -169,11 +169,18 @@ expresssions language. These are briefly discussed in section \ref{Spreadsheet m
 \label{Experimentation API application}
 The expression language that is provided is Lambda calculus extended with three small features:
 \begin{itemize}
-\item Back and forth computation between Church numerals and Haskell integer notation
-\item Back and forth computation between Church lists and Haskell list notation
+\item Back and forth computation between Church numerals and Haskell numeral notation. The predefined
+function toInt translates a Church numeral to a Haskell numeral, and Haskell numerals are translated to
+Church numerals during parsetime
+\item Back and forth computation between Church lists and Haskell list notation. The predefined
+function toInt translates a Church list to a Haskell list, and Haskell lists are translated to Church
+lists during parsetime
 \item Cell reference variables (e.g. 1A, 5B)
 \end{itemize}
 All technical challenges have been solved in naive ways.
+For example, when a cell expression has been modified, the entire sheet is recomputed. If during
+this recomputation an evaluation differs from a prior evaluation, the change is pushed and the entire
+process is repeated (i.e. the entire sheet is again recomputed).
 
 \subsection{Frontend abstraction}
 \label{Frontend abstraction}
