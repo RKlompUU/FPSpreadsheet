@@ -202,6 +202,38 @@ A solution for both of these issues might be to add a secondary environment to t
 wherein regular code can be written. For example, toplevel definitions could behave like global
 variables, and can subsequently be referenced to in cell expressions.
 
+\subsection{User guide}
+The executable has two different modi it can enter during startup: UI webserver hosting mode and lambda
+evaluation testing mode. To enter the latter, pass lambda code to the program through the stdin.
+The UI webserver hosting mode is entered if the stdin is closed during startup.
+
+The webserver can be accessed by browsing to the link that is echoed by the webserver during startup
+(by default this is http://127.0.0.1:8023/). A grid of textfields is shown, the focus can be moved
+to textfields by using the arrow keys. Using the enter key, the contents a focused textfield can be edited.
+For now only the extended lambda calculus code (see section \ref{Experimentation API application})
+is allowed as content (no normal string content is allowed). The content will be parsed and evaluated
+when the editing mode is exited.
+To exit editing mode of a textfield, either press the enter key to accept the made changes or
+press the exit key to undo the made changes.
+
+A small demonstration is given in figures \ref{FPContent} and \refP{FPResult}. The first shows the code that has
+been entered in each of the cells, and the latter shows to what each cell's content evaluates to.
+A minor defect is that the column names are numbered, while they have to be referenced in lambda code
+by using capital letters (the A's in the references refer to the first column, thus 0A would be the
+(0, 0) cell).
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{FPContent}
+  \caption{A spreadsheet showing unevaluated cell content.}
+  \label{FPContent}
+\end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{FPResult}
+  \caption{A spreadsheet showing evaluated cell content.}
+  \label{FPResult}
+\end{figure}
+
 \clearpage
 \section{Conclusion}
 An API has been defined that provides an abstraction over spreadsheet computation functionality.
